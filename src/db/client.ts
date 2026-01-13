@@ -1,8 +1,8 @@
 import { drizzle } from "drizzle-orm/expo-sqlite";
-import { openDatabaseSync } from "expo-sqlite/next";
+import * as SQLite from "expo-sqlite";
 import * as schema from "./schema";
 
-const expo = openDatabaseSync("adult-crm.db");
+const expo = SQLite.openDatabaseSync("adult-crm.db");
 
 export const db = drizzle(expo, { schema });
 

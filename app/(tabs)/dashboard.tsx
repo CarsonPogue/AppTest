@@ -19,6 +19,7 @@ import { startOfDay, endOfDay, addDays, addWeeks, addMonths } from "date-fns";
 import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import { calculateDrift, type Priority } from "../../src/utils/relationshipIntelligence";
+import { BlurView } from "expo-blur";
 
 type DashboardSummary = {
   events: {
@@ -255,18 +256,38 @@ export default function DashboardScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-background" edges={["top"]}>
-      {/* Sticky Greeting Header */}
-      <View className="px-4 pt-4 pb-3 bg-background">
-        <Text className={`text-3xl font-bold ${textColor}`}>
-          {getGreeting()}, {user?.firstName || "there"}
-        </Text>
-        <Text className={`text-base mt-1 ${secondaryTextColor}`}>
-          {new Date().toLocaleDateString("en-US", {
-            weekday: "long",
-            month: "long",
-            day: "numeric",
-          })}
-        </Text>
+      {/* Sticky Greeting Header with Glass Effect */}
+      <View style={{ overflow: "hidden" }}>
+        <BlurView
+          intensity={60}
+          tint={isDark ? "dark" : "light"}
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+          }}
+        />
+        <View
+          style={{
+            backgroundColor: isDark ? "rgba(17, 24, 39, 0.7)" : "rgba(255, 255, 255, 0.7)",
+            paddingHorizontal: 16,
+            paddingTop: 16,
+            paddingBottom: 12,
+          }}
+        >
+          <Text className={`text-3xl font-bold ${textColor}`}>
+            {getGreeting()}, {user?.firstName || "there"}
+          </Text>
+          <Text className={`text-base mt-1 ${secondaryTextColor}`}>
+            {new Date().toLocaleDateString("en-US", {
+              weekday: "long",
+              month: "long",
+              day: "numeric",
+            })}
+          </Text>
+        </View>
       </View>
 
       <ScrollView
@@ -331,7 +352,13 @@ export default function DashboardScreen() {
           onEmptyActionPress={() => router.push("/schedule/new-event" as any)}
           delay={0}
         >
-          <View>
+          <View
+            style={{
+              backgroundColor: isDark ? "rgba(55, 65, 81, 0.5)" : "rgba(243, 244, 246, 0.8)",
+              borderRadius: 16,
+              padding: 12,
+            }}
+          >
             {summary?.events.nextEvent && (
               <View className="mb-2">
                 <Text className={`text-sm ${secondaryTextColor}`}>Next Event</Text>
@@ -365,7 +392,13 @@ export default function DashboardScreen() {
           onEmptyActionPress={() => router.push("/habits/new" as any)}
           delay={1}
         >
-          <View>
+          <View
+            style={{
+              backgroundColor: isDark ? "rgba(55, 65, 81, 0.5)" : "rgba(243, 244, 246, 0.8)",
+              borderRadius: 16,
+              padding: 12,
+            }}
+          >
             <View className="mb-2">
               <Text className={`text-sm ${secondaryTextColor}`}>Today's Progress</Text>
               <View className="flex-row items-baseline">
@@ -400,7 +433,13 @@ export default function DashboardScreen() {
           onEmptyActionPress={() => router.push("/people/new" as any)}
           delay={2}
         >
-          <View>
+          <View
+            style={{
+              backgroundColor: isDark ? "rgba(55, 65, 81, 0.5)" : "rgba(243, 244, 246, 0.8)",
+              borderRadius: 16,
+              padding: 12,
+            }}
+          >
             {summary?.people.nextPerson && (
               <View className="mb-2">
                 <View className="flex-row items-center mb-1">

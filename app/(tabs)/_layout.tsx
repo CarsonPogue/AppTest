@@ -102,12 +102,20 @@ export default function TabsLayout() {
         tabBarInactiveTintColor: colors.inactive,
         tabBarStyle: {
           backgroundColor: "transparent",
-          borderTopColor: colors.border,
-          borderTopWidth: 0.5,
-          height: 85,
-          paddingBottom: 20,
+          borderTopWidth: 0,
+          height: 75,
+          paddingBottom: 12,
           paddingTop: 8,
           position: "absolute",
+          bottom: 20,
+          left: 16,
+          right: 16,
+          borderRadius: 24,
+          shadowColor: "#000000",
+          shadowOffset: { width: 0, height: 10 },
+          shadowOpacity: 0.25,
+          shadowRadius: 20,
+          elevation: 10,
         },
         tabBarLabelStyle: {
           fontSize: 11,
@@ -115,41 +123,19 @@ export default function TabsLayout() {
           marginTop: 4,
         },
         tabBarBackground: () => (
-          <View
+          <BlurView
+            intensity={80}
+            tint="systemUltraThinMaterial"
             style={{
               position: "absolute",
               top: 0,
               left: 0,
               right: 0,
               bottom: 0,
-              backgroundColor: "transparent",
+              borderRadius: 24,
               overflow: "hidden",
             }}
-          >
-            <BlurView
-              intensity={isDark ? 70 : 90}
-              tint={isDark ? "dark" : "light"}
-              style={{
-                position: "absolute",
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-              }}
-            />
-            <View
-              style={{
-                position: "absolute",
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-                backgroundColor: isDark
-                  ? "rgba(0, 0, 0, 0.3)"
-                  : "rgba(255, 255, 255, 0.1)",
-              }}
-            />
-          </View>
+          />
         ),
       }}
     >

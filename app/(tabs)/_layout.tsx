@@ -108,9 +108,9 @@ export default function TabsLayout() {
           paddingTop: 8,
           position: "absolute",
           bottom: 20,
-          left: 16,
-          right: 16,
-          borderRadius: 24,
+          left: 60,
+          right: 60,
+          borderRadius: 40,
           shadowColor: "#000000",
           shadowOffset: { width: 0, height: 10 },
           shadowOpacity: 0.25,
@@ -132,7 +132,7 @@ export default function TabsLayout() {
               left: 0,
               right: 0,
               bottom: 0,
-              borderRadius: 24,
+              borderRadius: 40,
               overflow: "hidden",
             }}
           />

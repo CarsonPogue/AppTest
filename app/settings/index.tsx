@@ -295,7 +295,7 @@ export default function SettingsScreen() {
         <View style={{ width: 28 }} />
       </View>
 
-      <ScrollView className="flex-1 px-4">
+      <ScrollView className="flex-1 px-4" contentContainerStyle={{ paddingBottom: 120 }}>
         {/* Appearance */}
         <Card variant="glass" className="mb-4">
           <Text className={`text-lg font-semibold mb-3 ${textColor}`}>

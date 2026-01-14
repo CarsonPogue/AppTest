@@ -164,7 +164,7 @@ export default function NewHabitScreen() {
         <View style={{ width: 28 }} />
       </View>
 
-      <ScrollView className="flex-1 px-4">
+      <ScrollView className="flex-1 px-4" contentContainerStyle={{ paddingBottom: 120 }}>
         {/* Title */}
         <Input
           label="Title"

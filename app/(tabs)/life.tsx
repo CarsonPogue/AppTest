@@ -371,7 +371,7 @@ export default function LifeScreen() {
         )}
       </View>
 
-      <ScrollView className="flex-1 px-4">
+      <ScrollView className="flex-1 px-4" contentContainerStyle={{ paddingBottom: 120 }}>
         {/* People Section */}
         {selectedSection === "people" && (
           <>

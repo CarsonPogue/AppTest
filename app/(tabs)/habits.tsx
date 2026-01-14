@@ -83,7 +83,7 @@ export default function HabitsScreen() {
         </View>
       </View>
 
-      <ScrollView className="flex-1 px-4">
+      <ScrollView className="flex-1 px-4" contentContainerStyle={{ paddingBottom: 120 }}>
         {habits.map((habit) => (
           <Card
             key={habit.id}

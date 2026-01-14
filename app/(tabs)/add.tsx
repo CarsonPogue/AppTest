@@ -71,18 +71,13 @@ const quickAddOptions: QuickAddOption[] = [
 export default function AddScreen() {
   const { isDark } = useTheme();
   const router = useRouter();
-  const [visible, setVisible] = useState(false);
-
-  useEffect(() => {
-    // Open modal when screen is focused
-    setVisible(true);
-  }, []);
+  const [visible, setVisible] = useState(true);
 
   const handleClose = () => {
     setVisible(false);
     setTimeout(() => {
       router.back();
-    }, 200);
+    }, 250);
   };
 
   const handleOptionPress = (route: string) => {
@@ -90,22 +85,22 @@ export default function AddScreen() {
     setVisible(false);
     setTimeout(() => {
       router.push(route as any);
-    }, 200);
+    }, 250);
   };
 
   return (
     <Modal
       visible={visible}
       transparent
-      animationType="fade"
+      animationType="none"
       onRequestClose={handleClose}
       statusBarTranslucent
     >
       <Pressable onPress={handleClose} style={{ flex: 1 }}>
         {/* Subtle blur and dim background */}
-        <BlurView
-          intensity={20}
-          tint={isDark ? "dark" : "light"}
+        <Animated.View
+          entering={FadeIn.duration(250)}
+          exiting={FadeOut.duration(200)}
           style={{
             position: "absolute",
             top: 0,
@@ -113,24 +108,41 @@ export default function AddScreen() {
             right: 0,
             bottom: 0,
           }}
-        />
-        <View
-          style={{
-            position: "absolute",
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: "rgba(0, 0, 0, 0.3)",
-          }}
-        />
+        >
+          <BlurView
+            intensity={20}
+            tint={isDark ? "dark" : "light"}
+            style={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+            }}
+          />
+          <View
+            style={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: "rgba(0, 0, 0, 0.3)",
+            }}
+          />
+        </Animated.View>
 
-        {/* Popup centered with subtle scale animation */}
+        {/* Popup centered with smooth fade and scale animation */}
         <View style={{ flex: 1, justifyContent: "center", paddingHorizontal: 32, paddingBottom: 100 }}>
           <Pressable onPress={(e) => e.stopPropagation()}>
             <Animated.View
-              entering={FadeIn.duration(200).withInitialValues({ opacity: 0 })}
-              exiting={FadeOut.duration(150)}
+              entering={FadeIn.duration(250)
+                .withInitialValues({ opacity: 0, transform: [{ scale: 0.95 }] })
+                .withCallback(() => {
+                  'worklet';
+                  // Smooth scale animation
+                })}
+              exiting={FadeOut.duration(200)}
               style={{ gap: 12 }}
             >
               {quickAddOptions.map((option, index) => (

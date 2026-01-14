@@ -41,7 +41,7 @@ export default function HabitsScreen() {
       const allHabits = await db.query.habits.findMany({
         where: and(
           eq(schema.habits.userId, user.id),
-          eq(schema.habits.archived, false)
+          eq(schema.habits.archived, 0)
         ),
       });
 

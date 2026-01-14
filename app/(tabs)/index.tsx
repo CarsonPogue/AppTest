@@ -61,21 +61,32 @@ export default function TodayScreen() {
 
     try {
       // Load today's habits
-      const today = startOfDay(new Date());
-      const allHabits = await db.query.habits.findMany({
-        where: and(
-          eq(schema.habits.userId, user.id),
-          eq(schema.habits.archived, false)
-        ),
-      });
+        const now = new Date();
+        const nowIso = now.toISOString();
+        const startIso = startOfDay(now).toISOString();
+        const endIso = endOfDay(now).toISOString();
+
+  // Load today's habits
+
+       // Load today's habits
+    const today = startOfDay(new Date());
+const end = endOfDay(new Date());
+
+const allHabits = await db.query.habits.findMany({
+  where: and(
+    eq(schema.habits.userId, user.id),
+    eq(schema.habits.archived, 0) // archived is an int in sqlite (0/1)
+  ),
+});
 
       const habitsWithLogs = await Promise.all(
         allHabits.map(async (habit) => {
           const log = await db.query.habitLogs.findFirst({
             where: and(
               eq(schema.habitLogs.habitId, habit.id),
-              gte(schema.habitLogs.completedAt, today),
-              lte(schema.habitLogs.completedAt, endOfDay(new Date()))
+              gte(schema.habitLogs.completedAt, startIso),
+              lte(schema.habitLogs.completedAt, endIso)
+
             ),
           });
 
@@ -95,7 +106,7 @@ export default function TodayScreen() {
       const upcomingEvents = await db.query.events.findMany({
         where: and(
           eq(schema.events.userId, user.id),
-          gte(schema.events.startTime, new Date()),
+          gte(schema.events.startTime, nowIso),
           eq(schema.events.status, "confirmed")
         ),
         orderBy: [schema.events.startTime],
@@ -118,40 +129,57 @@ export default function TodayScreen() {
       });
 
       const duePeople = allPeople
-        .filter((p) => {
-          if (!p.lastContactDate) return true;
-          const daysSinceContact = daysFromNow(p.lastContactDate);
-          return Math.abs(daysSinceContact) >= p.touchpointFrequencyDays;
-        })
-        .slice(0, 2)
-        .map((p) => ({
-          id: p.id,
-          name: p.name,
-          daysOverdue: p.lastContactDate
-            ? Math.abs(daysFromNow(p.lastContactDate)) - p.touchpointFrequencyDays
-            : p.touchpointFrequencyDays,
-        }));
+  .filter((p) => {
+    if (!p.lastInteractionAt) return true;
+
+    const last = new Date(p.lastInteractionAt);
+    const msPerDay = 1000 * 60 * 60 * 24;
+    const daysSince = Math.floor((Date.now() - last.getTime()) / msPerDay);
+
+    return daysSince >= p.preferredCadenceDays;
+  })
+  .slice(0, 2)
+  .map((p) => {
+    const overdueDays = p.lastInteractionAt
+      ? Math.max(
+          0,
+          Math.floor(
+            (Date.now() - new Date(p.lastInteractionAt).getTime()) /
+              (1000 * 60 * 60 * 24)
+          ) - p.preferredCadenceDays
+        )
+      : p.preferredCadenceDays;
+
+    return {
+      id: p.id,
+      name: p.fullName,
+      daysOverdue: overdueDays,
+    };
+  });
+
+setPeopleDue(duePeople);
 
       setPeopleDue(duePeople);
 
       // Load stats
-      const pendingBookings = await db.query.bookings.findMany({
-        where: eq(schema.bookings.status, "pending"),
-      });
+const pendingBookings = await db.query.bookings.findMany({
+  where: eq(schema.bookings.status, "pending"),
+});
 
-      const overdueTasks = await db.query.events.findMany({
-        where: and(
-          eq(schema.events.userId, user.id),
-          eq(schema.events.type, "task"),
-          eq(schema.events.status, "pending"),
-          lte(schema.events.startTime, new Date())
-        ),
-      });
+
+const overdueTasks = await db.query.events.findMany({
+  where: and(
+    eq(schema.events.userId, user.id),
+    eq(schema.events.type, "task"),
+    eq(schema.events.status, "pending"),
+    lte(schema.events.startTime, nowIso)
+  ),
+});
 
       const maintenanceDue = await db.query.maintenanceTasks.findMany({
         where: and(
-          eq(schema.maintenanceTasks.active, true),
-          lte(schema.maintenanceTasks.nextDueDate, addDays(new Date(), 7))
+          eq(schema.maintenanceTasks.active, 1),
+          lte(schema.maintenanceTasks.nextDueDate, addDays(new Date(), 7).toISOString())
         ),
       });
 
@@ -176,36 +204,42 @@ export default function TodayScreen() {
   };
 
   const handleHabitToggle = async (habitId: string) => {
-    try {
-      const habit = habits.find((h) => h.id === habitId);
-      if (!habit) return;
+  try {
+    const habit = habits.find((h) => h.id === habitId);
+    if (!habit) return;
 
-      if (habit.completed) {
-        // Remove log
-        await db
-          .delete(schema.habitLogs)
-          .where(
-            and(
-              eq(schema.habitLogs.habitId, habitId),
-              gte(schema.habitLogs.completedAt, startOfDay(new Date()))
-            )
-          );
-      } else {
-        // Add log
-        await db.insert(schema.habitLogs).values({
-          id: nanoid(),
-          habitId,
-          completedAt: new Date(),
-          skipped: false,
-        });
-      }
+    const startIso = startOfDay(new Date()).toISOString();
+    const endIso = endOfDay(new Date()).toISOString();
 
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      loadData();
-    } catch (error) {
-      console.error("Error toggling habit:", error);
+    if (habit.completed) {
+      await db
+        .delete(schema.habitLogs)
+        .where(
+          and(
+            eq(schema.habitLogs.habitId, habitId),
+            gte(schema.habitLogs.completedAt, startIso),
+            lte(schema.habitLogs.completedAt, endIso)
+          )
+        );
+    } else {
+      await db.insert(schema.habitLogs).values({
+        id: nanoid(),
+        habitId,
+        completedAt: new Date().toISOString(),
+        skipped: 0,
+      });
     }
-  };
+
+    setHabits((prev) =>
+      prev.map((h) => (h.id === habitId ? { ...h, completed: !h.completed } : h))
+    );
+
+    await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    await loadData();
+  } catch (error) {
+    console.error("Error toggling habit:", error);
+  }
+};
 
   const textColor = isDark ? "text-white" : "text-gray-900";
   const secondaryTextColor = isDark ? "text-gray-400" : "text-gray-600";

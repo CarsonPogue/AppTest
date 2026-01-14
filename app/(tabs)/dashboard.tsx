@@ -70,11 +70,11 @@ export default function DashboardScreen() {
         ]);
 
       setSummary({
-        events: eventsData,
-        habits: habitsData,
-        people: peopleData,
-        subscriptions: subscriptionsData,
-      });
+  events: eventsData,
+  habits: habitsData,
+  people: peopleData,
+  subscriptions: subscriptionsData,
+});
 
       setIsLoading(false);
     } catch (error) {
@@ -84,164 +84,151 @@ export default function DashboardScreen() {
   };
 
   const loadEventsSummary = async (userId: string) => {
-    const now = new Date();
-    const sevenDaysFromNow = addWeeks(now, 1);
+  const now = new Date();
+  const sevenDaysFromNow = addWeeks(now, 1);
 
-    const upcomingEvents = await db.query.events.findMany({
-      where: and(
-        eq(schema.events.userId, userId),
-        gte(schema.events.startTime, now),
-        eq(schema.events.status, "confirmed")
-      ),
-      orderBy: [schema.events.startTime],
-      limit: 1,
-    });
+  const nowIso = now.toISOString();
+  const weekIso = sevenDaysFromNow.toISOString();
 
-    const eventsInWeek = await db.query.events.findMany({
-      where: and(
-        eq(schema.events.userId, userId),
-        gte(schema.events.startTime, now),
-        lte(schema.events.startTime, sevenDaysFromNow),
-        eq(schema.events.status, "confirmed")
-      ),
-    });
+  const upcomingEvents = await db.query.events.findMany({
+    where: and(
+      eq(schema.events.userId, userId),
+      gte(schema.events.startTime, nowIso),
+      eq(schema.events.status, "confirmed")
+    ),
+    orderBy: [schema.events.startTime],
+    limit: 1,
+  });
 
-    return {
-      nextEvent: upcomingEvents[0]
-        ? {
-            title: upcomingEvents[0].title,
-            startTime: new Date(upcomingEvents[0].startTime),
-          }
-        : null,
-      countNext7Days: eventsInWeek.length,
-    };
+  const eventsInWeek = await db.query.events.findMany({
+    where: and(
+      eq(schema.events.userId, userId),
+      gte(schema.events.startTime, nowIso),
+      lte(schema.events.startTime, weekIso),
+      eq(schema.events.status, "confirmed")
+    ),
+  });
+
+  return {
+    nextEvent: upcomingEvents[0]
+      ? {
+          title: upcomingEvents[0].title,
+          startTime: new Date(upcomingEvents[0].startTime),
+        }
+      : null,
+    countNext7Days: eventsInWeek.length,
   };
+};
 
   const loadHabitsSummary = async (userId: string) => {
-    const today = startOfDay(new Date());
+  const todayIso = startOfDay(new Date()).toISOString();
+  const endIso = endOfDay(new Date()).toISOString();
 
-    const allHabits = await db.query.habits.findMany({
+  // Get all active habits
+  const allHabits = await db.query.habits.findMany({
+    where: and(
+      eq(schema.habits.userId, userId),
+      eq(schema.habits.archived, 0)
+    ),
+    orderBy: [schema.habits.createdAt],
+  });
+
+  // Count completed today
+  let completedCount = 0;
+
+  for (const habit of allHabits) {
+    const log = await db.query.habitLogs.findFirst({
       where: and(
-        eq(schema.habits.userId, userId),
-        eq(schema.habits.archived, false)
+        eq(schema.habitLogs.habitId, habit.id),
+        gte(schema.habitLogs.completedAt, todayIso),
+        lte(schema.habitLogs.completedAt, endIso)
       ),
     });
 
-    let completedCount = 0;
-    for (const habit of allHabits) {
-      const log = await db.query.habitLogs.findFirst({
-        where: and(
-          eq(schema.habitLogs.habitId, habit.id),
-          gte(schema.habitLogs.completedAt, today),
-          lte(schema.habitLogs.completedAt, endOfDay(new Date()))
-        ),
-      });
-      if (log && !log.skipped) {
-        completedCount++;
-      }
-    }
+    if (log) completedCount++;
+  }
 
-    const nextHabit =
-      allHabits.length > 0
-        ? { title: allHabits[0].title, icon: allHabits[0].icon }
-        : null;
-
-    return {
-      completedToday: completedCount,
-      totalToday: allHabits.length,
-      nextHabit,
-    };
-  };
-
-  const loadPeopleSummary = async (userId: string) => {
-    const allPeople = await db.query.people.findMany({
-      where: eq(schema.people.userId, userId),
-    });
-
-    const peopleWithDrift = allPeople.map((p) => {
-      const { driftStatus, daysSinceLastInteraction } = calculateDrift(
-        p.lastInteractionAt ? new Date(p.lastInteractionAt) : null,
-        p.preferredCadenceDays,
-        new Date(p.createdAt)
-      );
-
-      return {
-        ...p,
-        driftStatus,
-        daysSinceLastInteraction,
-        isImportantAndNeglected:
-          p.priority === "high" && driftStatus === "overdue",
-      };
-    });
-
-    const overduePeople = peopleWithDrift.filter(
-      (p) => p.driftStatus === "overdue"
-    );
-    const importantNeglected = peopleWithDrift.filter(
-      (p) => p.isImportantAndNeglected
-    );
-
-    // Sort by days overdue (most overdue first), prioritizing high priority
-    const sorted = overduePeople.sort((a, b) => {
-      // Prioritize important & neglected
-      if (a.isImportantAndNeglected && !b.isImportantAndNeglected) return -1;
-      if (!a.isImportantAndNeglected && b.isImportantAndNeglected) return 1;
-
-      // Then sort by days overdue
-      const aDays = (a.daysSinceLastInteraction || 0) - a.preferredCadenceDays;
-      const bDays = (b.daysSinceLastInteraction || 0) - b.preferredCadenceDays;
-      return bDays - aDays;
-    });
-
-    const nextPerson = sorted[0]
-      ? {
-          fullName: sorted[0].fullName,
-          daysOverdue:
-            (sorted[0].daysSinceLastInteraction || 0) -
-            sorted[0].preferredCadenceDays,
-          priority: sorted[0].priority,
-        }
+  const nextHabit =
+    allHabits.length > 0
+      ? { title: allHabits[0].title, icon: allHabits[0].icon }
       : null;
 
-    return {
-      overdueCount: overduePeople.length,
-      importantNeglectedCount: importantNeglected.length,
-      nextPerson,
-    };
+  return {
+    completedToday: completedCount,
+    totalToday: allHabits.length,
+    nextHabit,
   };
+};
+
+  const loadPeopleSummary = async (userId: string) => {
+  const people = await db.query.people.findMany({
+    where: eq(schema.people.userId, userId),
+  });
+
+  const now = new Date();
+
+  const scored = people
+    .map((p) => {
+      const cadence = p.preferredCadenceDays ?? 30;
+      const last = p.lastInteractionAt ? new Date(p.lastInteractionAt) : null;
+
+      const daysSince = last
+        ? Math.floor((now.getTime() - last.getTime()) / 86400000)
+        : cadence;
+
+      const daysOverdue = Math.max(0, daysSince - cadence);
+
+      return { p, daysOverdue };
+    })
+    .sort((a, b) => b.daysOverdue - a.daysOverdue);
+
+  const overdue = scored.filter((x) => x.daysOverdue > 0);
+
+  const importantNeglected = overdue.filter(
+    (x) => (x.p.priority ?? "").toLowerCase() === "high"
+  );
+
+  const next = overdue[0]?.p ?? null;
+
+  return {
+    overdueCount: overdue.length,
+    importantNeglectedCount: importantNeglected.length,
+    nextPerson: next
+      ? {
+          fullName: next.fullName,
+          daysOverdue: overdue[0].daysOverdue,
+          priority: next.priority,
+        }
+      : null,
+  };
+};
 
   const loadSubscriptionsSummary = async (userId: string) => {
-    const now = new Date();
-    const thirtyDaysFromNow = addMonths(now, 1);
+  const now = new Date();
+  const thirtyDaysFromNow = addMonths(now, 1);
 
-    const nextSub = await db.query.subscriptions.findMany({
-      where: and(
-        eq(schema.subscriptions.userId, userId),
-        gte(schema.subscriptions.nextRenewalDate, now)
-      ),
-      orderBy: [schema.subscriptions.nextRenewalDate],
-      limit: 1,
-    });
+  const subsInMonth = await db.query.subscriptions.findMany({
+    where: and(
+      eq(schema.subscriptions.userId, userId),
+      gte(schema.subscriptions.nextRenewalDate, now.toISOString()),
+      lte(schema.subscriptions.nextRenewalDate, thirtyDaysFromNow.toISOString())
+    ),
+    orderBy: [schema.subscriptions.nextRenewalDate],
+  });
 
-    const subsInMonth = await db.query.subscriptions.findMany({
-      where: and(
-        eq(schema.subscriptions.userId, userId),
-        gte(schema.subscriptions.nextRenewalDate, now),
-        lte(schema.subscriptions.nextRenewalDate, thirtyDaysFromNow)
-      ),
-    });
+  const next = subsInMonth[0];
 
-    return {
-      nextCharge: nextSub[0]
-        ? {
-            name: nextSub[0].name,
-            date: new Date(nextSub[0].nextRenewalDate),
-            amount: nextSub[0].amount,
-          }
-        : null,
-      countNext30Days: subsInMonth.length,
-    };
+  return {
+    nextCharge: next
+      ? {
+          name: next.name,
+          date: new Date(next.nextRenewalDate),
+          amount: next.amount,
+        }
+      : null,
+    countNext30Days: subsInMonth.length,
   };
+};
 
   const handleRefresh = async () => {
     setRefreshing(true);
@@ -436,20 +423,20 @@ export default function DashboardScreen() {
               </View>
             )}
             <View>
-              {summary?.people.importantNeglectedCount > 0 && (
-                <View className="flex-row items-center mb-1">
-                  <Ionicons name="warning" size={16} color="#EF4444" />
-                  <Text className={`text-sm ml-2 ${secondaryTextColor}`}>
-                    {summary.people.importantNeglectedCount} important & neglected
-                  </Text>
-                </View>
-              )}
+              {(summary?.people?.importantNeglectedCount ?? 0) > 0 && (
+  <View className="flex-row items-center mb-1">
+    <Ionicons name="warning" size={16} color="#EF4444" />
+    <Text className={`text-sm ml-2 ${secondaryTextColor}`}>
+      {summary?.people?.importantNeglectedCount} important & neglected
+    </Text>
+  </View>
+)}
               <View className="flex-row items-center">
-                <Ionicons name="alert-circle" size={16} color="#F59E0B" />
-                <Text className={`text-sm ml-2 ${secondaryTextColor}`}>
-                  {summary?.people.overdueCount || 0} overdue contacts
-                </Text>
-              </View>
+  <Ionicons name="alert-circle" size={16} color="#F59E0B" />
+  <Text className={`text-sm ml-2 ${secondaryTextColor}`}>
+    {summary?.people?.importantNeglectedCount ?? 0}
+  </Text>
+</View>
             </View>
           </View>
         </DashboardCard>

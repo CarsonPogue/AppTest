@@ -1,9 +1,10 @@
-import { sqliteTable, text, integer } from "drizzle-orm/sqlite-core";
+import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
 
 // Users table with profile extensions
 export const users = sqliteTable("users", {
   id: text("id").primaryKey(),
   email: text("email").notNull().unique(),
+  name: text("name").notNull(),
   firstName: text("first_name").notNull(),
   birthday: text("birthday").notNull(), // ISO date string
   passwordHash: text("password_hash").notNull(),

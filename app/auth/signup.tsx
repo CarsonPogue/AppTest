@@ -14,7 +14,7 @@ import { useUserStore } from "../../src/stores/user";
 import { Card } from "../../src/components/ui/Card";
 import { Button } from "../../src/components/ui/Button";
 import { Input } from "../../src/components/ui/Input";
-import { db } from "../../src/db/client";
+import { db, ensureDbReady } from "../../src/db/client";
 import * as schema from "../../src/db/schema";
 import { nanoid } from "../../src/utils/nanoid";
 import { hashPassword, isValidEmail, validatePassword } from "../../src/utils/auth";
@@ -77,6 +77,7 @@ export default function SignUpScreen() {
     }
 
     setIsLoading(true);
+    
 
     try {
       // Check if email already exists
@@ -99,6 +100,7 @@ export default function SignUpScreen() {
       await db.insert(schema.users).values({
         id: userId,
         email: email.toLowerCase(),
+        name: firstName.trim(),
         firstName: firstName.trim(),
         birthday: format(birthday, "yyyy-MM-dd"),
         passwordHash,

@@ -6,6 +6,7 @@ import { useTheme } from "../../src/stores/theme";
 import { useUserStore } from "../../src/stores/user";
 import { Card } from "../../src/components/ui/Card";
 import { SubscriptionList } from "../../src/components/subscriptions/SubscriptionList";
+import { MaintenanceList } from "../../src/components/maintenance/MaintenanceList";
 import { db } from "../../src/db/client";
 import { eq } from "drizzle-orm";
 import * as schema from "../../src/db/schema";
@@ -25,12 +26,14 @@ export default function HomeScreen() {
   const router = useRouter();
   const [rooms, setRooms] = useState<Room[]>([]);
   const [subscriptions, setSubscriptions] = useState<any[]>([]);
+  const [maintenanceItems, setMaintenanceItems] = useState<any[]>([]);
   const [selectedTab, setSelectedTab] = useState<"rooms" | "maintenance" | "subscriptions">("rooms");
 
   useFocusEffect(
     React.useCallback(() => {
       loadRooms();
       loadSubscriptions();
+      loadMaintenanceItems();
     }, [user])
   );
 
@@ -79,6 +82,29 @@ export default function HomeScreen() {
       setSubscriptions(mapped);
     } catch (error) {
       console.error("Error loading subscriptions:", error);
+    }
+  };
+
+  const loadMaintenanceItems = async () => {
+    if (!user) return;
+
+    try {
+      const allItems = await db.query.maintenanceItems.findMany({
+        where: eq(schema.maintenanceItems.userId, user.id),
+      });
+
+      const mapped = allItems.map((item) => ({
+        ...item,
+        lastCompletedDate: item.lastCompletedDate ? new Date(item.lastCompletedDate) : null,
+        nextDueDate: new Date(item.nextDueDate),
+      }));
+
+      // Sort by next due date (soonest first)
+      mapped.sort((a, b) => a.nextDueDate.getTime() - b.nextDueDate.getTime());
+
+      setMaintenanceItems(mapped);
+    } catch (error) {
+      console.error("Error loading maintenance items:", error);
     }
   };
 
@@ -217,11 +243,42 @@ export default function HomeScreen() {
         )}
 
         {selectedTab === "maintenance" && (
-          <View className="items-center justify-center py-12">
-            <Text className={`text-lg ${secondaryTextColor} text-center`}>
-              Maintenance tracker coming soon
-            </Text>
-          </View>
+          <>
+            {/* Add Maintenance Item Button */}
+            <Pressable
+              onPress={() => {
+                Haptics.selectionAsync();
+                router.push("/home/maintenance/new" as any);
+              }}
+              className="mb-4"
+            >
+              <Card variant="glass" className="flex-row items-center justify-center py-4">
+                <Ionicons name="add-circle" size={24} color="#10B981" />
+                <Text className="text-base font-semibold ml-2" style={{ color: "#10B981" }}>
+                  Add Maintenance Task
+                </Text>
+              </Card>
+            </Pressable>
+
+            {/* Maintenance Items List */}
+            {maintenanceItems.length > 0 ? (
+              <MaintenanceList items={maintenanceItems} />
+            ) : (
+              <Card variant="glass" className="items-center py-12">
+                <Ionicons
+                  name="construct-outline"
+                  size={48}
+                  color={isDark ? "#4B5563" : "#D1D5DB"}
+                />
+                <Text className={`text-base ${secondaryTextColor} mt-3 text-center`}>
+                  No maintenance tasks yet
+                </Text>
+                <Text className={`text-sm ${secondaryTextColor} mt-1 text-center px-8`}>
+                  Track home, vehicle, and appliance maintenance
+                </Text>
+              </Card>
+            )}
+          </>
         )}
 
         {selectedTab === "subscriptions" && (

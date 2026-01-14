@@ -1,12 +1,19 @@
-import React, { useState } from "react";
-import { View, Text, Modal, Pressable, ScrollView } from "react-native";
+import React, { useState, useEffect } from "react";
+import { View, Text, Modal, Pressable } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { useTheme } from "../../src/stores/theme";
-import { Card } from "../../src/components/ui/Card";
 import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
-import Animated, { FadeIn, FadeOut } from "react-native-reanimated";
+import Animated, {
+  FadeIn,
+  FadeOut,
+  SlideInDown,
+  useAnimatedStyle,
+  withSpring,
+  withDelay,
+} from "react-native-reanimated";
+import { BlurView } from "expo-blur";
 
 type QuickAddOption = {
   id: string;
@@ -66,7 +73,7 @@ export default function AddScreen() {
   const router = useRouter();
   const [visible, setVisible] = useState(false);
 
-  React.useEffect(() => {
+  useEffect(() => {
     // Open modal when screen is focused
     setVisible(true);
   }, []);
@@ -86,73 +93,159 @@ export default function AddScreen() {
     }, 200);
   };
 
-  const textColor = isDark ? "text-white" : "text-gray-900";
-  const secondaryTextColor = isDark ? "text-gray-400" : "text-gray-600";
-
   return (
     <Modal
       visible={visible}
       transparent
-      animationType="fade"
+      animationType="none"
       onRequestClose={handleClose}
     >
-      <Pressable
-        className="flex-1 bg-black/50"
-        onPress={handleClose}
-        style={{ backdropFilter: "blur(10px)" }}
+      {/* Blur Background with Vignette */}
+      <Animated.View
+        entering={FadeIn.duration(300)}
+        exiting={FadeOut.duration(200)}
+        style={{ flex: 1 }}
       >
-        <SafeAreaView className="flex-1 justify-center px-6">
-          <Animated.View entering={FadeIn} exiting={FadeOut}>
-            <Pressable onPress={(e) => e.stopPropagation()}>
-              <Card variant="glass-strong" className="p-6">
-                <Text className={`text-2xl font-bold mb-6 text-center ${textColor}`}>
-                  Quick Add
-                </Text>
+        <Pressable onPress={handleClose} style={{ flex: 1 }}>
+          <BlurView
+            intensity={40}
+            tint={isDark ? "dark" : "light"}
+            style={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+            }}
+          />
+          {/* Vignette overlay */}
+          <View
+            style={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: "rgba(0, 0, 0, 0.4)",
+            }}
+          />
 
-                <View className="space-y-3">
-                  {quickAddOptions.map((option, index) => (
+          <SafeAreaView style={{ flex: 1, justifyContent: "center", paddingHorizontal: 32 }}>
+            <Pressable onPress={(e) => e.stopPropagation()}>
+              <View style={{ gap: 16 }}>
+                {quickAddOptions.map((option, index) => (
+                  <Animated.View
+                    key={option.id}
+                    entering={SlideInDown.delay(index * 50)
+                      .duration(400)
+                      .springify()
+                      .damping(15)}
+                  >
                     <Pressable
-                      key={option.id}
                       onPress={() => handleOptionPress(option.route)}
-                      className="active:opacity-70"
+                      style={{
+                        borderRadius: 24,
+                        overflow: "hidden",
+                        shadowColor: option.color,
+                        shadowOffset: { width: 0, height: 4 },
+                        shadowOpacity: 0.3,
+                        shadowRadius: 12,
+                        elevation: 8,
+                      }}
                     >
-                      <View className="flex-row items-center p-4 rounded-xl bg-surface">
+                      <BlurView
+                        intensity={30}
+                        tint={isDark ? "dark" : "light"}
+                        style={{
+                          flexDirection: "row",
+                          alignItems: "center",
+                          paddingVertical: 20,
+                          paddingHorizontal: 24,
+                        }}
+                      >
+                        {/* Color background with glass effect */}
                         <View
-                          className="w-12 h-12 rounded-full items-center justify-center mr-4"
-                          style={{ backgroundColor: `${option.color}20` }}
+                          style={{
+                            position: "absolute",
+                            top: 0,
+                            left: 0,
+                            right: 0,
+                            bottom: 0,
+                            backgroundColor: option.color,
+                            opacity: 0.85,
+                          }}
+                        />
+
+                        <Ionicons name={option.icon} size={28} color="#FFFFFF" />
+                        <Text
+                          style={{
+                            fontSize: 18,
+                            fontWeight: "600",
+                            color: "#FFFFFF",
+                            marginLeft: 16,
+                            flex: 1,
+                          }}
                         >
-                          <Ionicons
-                            name={option.icon}
-                            size={24}
-                            color={option.color}
-                          />
-                        </View>
-                        <Text className={`text-lg font-medium flex-1 ${textColor}`}>
                           {option.title}
                         </Text>
-                        <Ionicons
-                          name="chevron-forward"
-                          size={20}
-                          color={isDark ? "#737373" : "#9CA3AF"}
-                        />
-                      </View>
+                        <Ionicons name="chevron-forward" size={22} color="#FFFFFF" />
+                      </BlurView>
                     </Pressable>
-                  ))}
-                </View>
+                  </Animated.View>
+                ))}
 
-                <Pressable
-                  onPress={handleClose}
-                  className="mt-6 p-4 rounded-xl bg-surface items-center active:opacity-70"
+                {/* Cancel Button */}
+                <Animated.View
+                  entering={SlideInDown.delay(quickAddOptions.length * 50 + 100)
+                    .duration(400)
+                    .springify()
+                    .damping(15)}
                 >
-                  <Text className={`text-base font-semibold ${secondaryTextColor}`}>
-                    Cancel
-                  </Text>
-                </Pressable>
-              </Card>
+                  <Pressable
+                    onPress={handleClose}
+                    style={{
+                      borderRadius: 24,
+                      overflow: "hidden",
+                      marginTop: 8,
+                    }}
+                  >
+                    <BlurView
+                      intensity={50}
+                      tint={isDark ? "dark" : "light"}
+                      style={{
+                        paddingVertical: 18,
+                        alignItems: "center",
+                      }}
+                    >
+                      <View
+                        style={{
+                          position: "absolute",
+                          top: 0,
+                          left: 0,
+                          right: 0,
+                          bottom: 0,
+                          backgroundColor: isDark
+                            ? "rgba(255, 255, 255, 0.1)"
+                            : "rgba(0, 0, 0, 0.05)",
+                        }}
+                      />
+                      <Text
+                        style={{
+                          fontSize: 16,
+                          fontWeight: "600",
+                          color: isDark ? "#E5E7EB" : "#374151",
+                        }}
+                      >
+                        Cancel
+                      </Text>
+                    </BlurView>
+                  </Pressable>
+                </Animated.View>
+              </View>
             </Pressable>
-          </Animated.View>
-        </SafeAreaView>
-      </Pressable>
+          </SafeAreaView>
+        </Pressable>
+      </Animated.View>
     </Modal>
   );
 }

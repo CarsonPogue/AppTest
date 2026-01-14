@@ -6,12 +6,14 @@ import { useTheme } from "../../src/stores/theme";
 import { useUserStore } from "../../src/stores/user";
 import { Calendar } from "../../src/components/calendar/Calendar";
 import { Card } from "../../src/components/ui/Card";
+import { Checkbox } from "../../src/components/ui/Checkbox";
 import { db } from "../../src/db/client";
 import { eq, and, gte, lte, desc } from "drizzle-orm";
 import * as schema from "../../src/db/schema";
 import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import { format, startOfDay, endOfDay, isSameDay } from "date-fns";
+import { nanoid } from "../../src/utils/nanoid";
 
 type Event = {
   id: string;
@@ -24,6 +26,14 @@ type Event = {
   color: string;
 };
 
+type Habit = {
+  id: string;
+  title: string;
+  icon: string;
+  color: string;
+  completedToday: boolean;
+};
+
 export default function ScheduleScreen() {
   const { isDark } = useTheme();
   const { user } = useUserStore();
@@ -31,6 +41,7 @@ export default function ScheduleScreen() {
 
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [events, setEvents] = useState<Event[]>([]);
+  const [habits, setHabits] = useState<Habit[]>([]);
   const [refreshing, setRefreshing] = useState(false);
   const [viewMode, setViewMode] = useState<"calendar" | "list">("calendar");
 
@@ -40,6 +51,7 @@ export default function ScheduleScreen() {
   useFocusEffect(
     React.useCallback(() => {
       loadEvents();
+      loadHabits();
     }, [user, selectedDate])
   );
 
@@ -69,9 +81,82 @@ export default function ScheduleScreen() {
     }
   };
 
+  const loadHabits = async () => {
+    if (!user) return;
+
+    try {
+      const today = startOfDay(new Date());
+      const allHabits = await db.query.habits.findMany({
+        where: and(
+          eq(schema.habits.userId, user.id),
+          eq(schema.habits.archived, false)
+        ),
+      });
+
+      const habitsWithCompletion = await Promise.all(
+        allHabits.map(async (habit) => {
+          const log = await db.query.habitLogs.findFirst({
+            where: and(
+              eq(schema.habitLogs.habitId, habit.id),
+              gte(schema.habitLogs.completedAt, today),
+              lte(schema.habitLogs.completedAt, endOfDay(new Date()))
+            ),
+          });
+
+          return {
+            id: habit.id,
+            title: habit.title,
+            icon: habit.icon,
+            color: habit.color,
+            completedToday: log ? !log.skipped : false,
+          };
+        })
+      );
+
+      setHabits(habitsWithCompletion);
+    } catch (error) {
+      console.error("Error loading habits:", error);
+    }
+  };
+
+  const handleHabitToggle = async (habitId: string, completed: boolean) => {
+    if (!user) return;
+
+    try {
+      const today = startOfDay(new Date());
+      const existingLog = await db.query.habitLogs.findFirst({
+        where: and(
+          eq(schema.habitLogs.habitId, habitId),
+          gte(schema.habitLogs.completedAt, today),
+          lte(schema.habitLogs.completedAt, endOfDay(new Date()))
+        ),
+      });
+
+      if (completed && !existingLog) {
+        // Create completion log
+        await db.insert(schema.habitLogs).values({
+          id: nanoid(),
+          userId: user.id,
+          habitId,
+          completedAt: new Date().toISOString(),
+          skipped: false,
+          notes: null,
+        });
+      } else if (!completed && existingLog) {
+        // Delete completion log
+        await db.delete(schema.habitLogs).where(eq(schema.habitLogs.id, existingLog.id));
+      }
+
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      loadHabits();
+    } catch (error) {
+      console.error("Error toggling habit:", error);
+    }
+  };
+
   const handleRefresh = async () => {
     setRefreshing(true);
-    await loadEvents();
+    await Promise.all([loadEvents(), loadHabits()]);
     setRefreshing(false);
   };
 
@@ -216,6 +301,70 @@ export default function ScheduleScreen() {
           <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
         }
       >
+        {/* Habits Section */}
+        <View className="mb-4">
+          <View className="flex-row justify-between items-center mb-3">
+            <Text className={`text-lg font-semibold ${textColor}`}>
+              Today's Habits
+            </Text>
+            <Pressable
+              onPress={() => {
+                Haptics.selectionAsync();
+                router.push("/habits/new" as any);
+              }}
+            >
+              <View className="flex-row items-center">
+                <Ionicons name="add-circle-outline" size={20} color={isDark ? "#60A5FA" : "#3B82F6"} />
+                <Text className="text-sm font-medium text-primary ml-1">Add</Text>
+              </View>
+            </Pressable>
+          </View>
+
+          {habits.length > 0 ? (
+            <View className="flex-row flex-wrap">
+              {habits.map((habit) => (
+                <Pressable
+                  key={habit.id}
+                  onPress={() => {
+                    Haptics.selectionAsync();
+                    router.push(`/habits/${habit.id}` as any);
+                  }}
+                  onLongPress={() => {
+                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                    handleHabitToggle(habit.id, !habit.completedToday);
+                  }}
+                  className="w-[48%] mr-[2%] mb-3"
+                >
+                  <Card variant="glass" className="p-4">
+                    <View className="flex-row items-center justify-between mb-2">
+                      <Text style={{ fontSize: 32 }}>{habit.icon}</Text>
+                      <Checkbox
+                        checked={habit.completedToday}
+                        onPress={() => handleHabitToggle(habit.id, !habit.completedToday)}
+                        color={habit.color}
+                      />
+                    </View>
+                    <Text className={`text-sm font-medium ${textColor}`} numberOfLines={2}>
+                      {habit.title}
+                    </Text>
+                  </Card>
+                </Pressable>
+              ))}
+            </View>
+          ) : (
+            <Card variant="glass" className="items-center py-8">
+              <Ionicons
+                name="checkmark-circle-outline"
+                size={48}
+                color={isDark ? "#4B5563" : "#D1D5DB"}
+              />
+              <Text className={`text-sm ${secondaryTextColor} mt-2 text-center`}>
+                No habits yet. Tap Add to create one.
+              </Text>
+            </Card>
+          )}
+        </View>
+
         {viewMode === "calendar" ? (
           <>
             {/* Calendar */}

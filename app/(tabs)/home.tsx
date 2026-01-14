@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { View, Text, ScrollView, Pressable } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useRouter, useFocusEffect } from "expo-router";
+import { useRouter, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { useTheme } from "../../src/stores/theme";
 import { useUserStore } from "../../src/stores/user";
 import { Card } from "../../src/components/ui/Card";
@@ -24,10 +24,21 @@ export default function HomeScreen() {
   const { isDark } = useTheme();
   const { user } = useUserStore();
   const router = useRouter();
+  const params = useLocalSearchParams();
+
   const [rooms, setRooms] = useState<Room[]>([]);
   const [subscriptions, setSubscriptions] = useState<any[]>([]);
   const [maintenanceItems, setMaintenanceItems] = useState<any[]>([]);
-  const [selectedTab, setSelectedTab] = useState<"rooms" | "maintenance" | "subscriptions">("rooms");
+  const [selectedTab, setSelectedTab] = useState<"rooms" | "maintenance" | "subscriptions">(
+    (params.tab as "rooms" | "maintenance" | "subscriptions") || "rooms"
+  );
+
+  useEffect(() => {
+    // Update selected tab if params change
+    if (params.tab) {
+      setSelectedTab(params.tab as "rooms" | "maintenance" | "subscriptions");
+    }
+  }, [params.tab]);
 
   useFocusEffect(
     React.useCallback(() => {

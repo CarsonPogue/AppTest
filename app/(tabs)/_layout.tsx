@@ -45,42 +45,6 @@ export default function TabsLayout() {
         }}
       />
       <Tabs.Screen
-        name="habits"
-        options={{
-          title: "Habits",
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="checkmark-circle-outline" size={size} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="add"
-        options={{
-          title: "",
-          tabBarIcon: ({ focused }) => (
-            <View
-              style={{
-                width: 56,
-                height: 56,
-                borderRadius: 28,
-                backgroundColor: colors.primary,
-                justifyContent: "center",
-                alignItems: "center",
-                marginBottom: 20,
-                shadowColor: colors.primary,
-                shadowOffset: { width: 0, height: 4 },
-                shadowOpacity: 0.3,
-                shadowRadius: 8,
-                elevation: 8,
-              }}
-            >
-              <Ionicons name="add" size={28} color="#FFFFFF" />
-            </View>
-          ),
-          tabBarLabel: () => null,
-        }}
-      />
-      <Tabs.Screen
         name="schedule"
         options={{
           title: "Schedule",
@@ -90,24 +54,51 @@ export default function TabsLayout() {
         }}
       />
       <Tabs.Screen
-        name="home"
+        name="life"
         options={{
-          title: "Home",
+          title: "Life",
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="home-outline" size={size} color={color} />
+            <Ionicons name="people-outline" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="profile"
+        options={{
+          title: "Profile",
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="person-outline" size={size} color={color} />
           ),
         }}
       />
       <Tabs.Screen
         name="index"
         options={{
-          href: null, // Hide Today tab, replaced by Dashboard
+          href: null, // Hide from tab bar
+        }}
+      />
+      <Tabs.Screen
+        name="habits"
+        options={{
+          href: null, // Hide from tab bar, accessed from schedule
+        }}
+      />
+      <Tabs.Screen
+        name="add"
+        options={{
+          href: null, // Remove center FAB
+        }}
+      />
+      <Tabs.Screen
+        name="home"
+        options={{
+          href: null, // Hide from tab bar, accessed from profile
         }}
       />
       <Tabs.Screen
         name="people"
         options={{
-          href: null, // Hide from tab bar but keep as route
+          href: null, // Hide from tab bar, people now at /life
         }}
       />
     </Tabs>

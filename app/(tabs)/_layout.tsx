@@ -63,22 +63,15 @@ function AnimatedRainbowRing({ isDark }: { isDark: boolean }) {
           }}
         />
       </Animated.View>
-      {/* Semi-transparent inner circle */}
+      {/* Transparent inner circle with just the icon */}
       <View
         style={{
           width: 56,
           height: 56,
           borderRadius: 28,
-          backgroundColor: isDark
-            ? "rgba(255, 255, 255, 0.15)"
-            : "rgba(255, 255, 255, 0.25)",
+          backgroundColor: "transparent",
           justifyContent: "center",
           alignItems: "center",
-          shadowColor: "#3B82F6",
-          shadowOffset: { width: 0, height: 4 },
-          shadowOpacity: 0.3,
-          shadowRadius: 12,
-          elevation: 8,
         }}
       >
         <Ionicons name="add" size={32} color="#FFFFFF" />
@@ -117,17 +110,41 @@ export default function TabsLayout() {
           marginTop: 4,
         },
         tabBarBackground: () => (
-          <BlurView
-            intensity={isDark ? 80 : 100}
-            tint={isDark ? "dark" : "light"}
+          <View
             style={{
               position: "absolute",
               top: 0,
               left: 0,
               right: 0,
               bottom: 0,
+              backgroundColor: "transparent",
+              overflow: "hidden",
             }}
-          />
+          >
+            <BlurView
+              intensity={isDark ? 70 : 90}
+              tint={isDark ? "dark" : "light"}
+              style={{
+                position: "absolute",
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+              }}
+            />
+            <View
+              style={{
+                position: "absolute",
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                backgroundColor: isDark
+                  ? "rgba(0, 0, 0, 0.3)"
+                  : "rgba(255, 255, 255, 0.1)",
+              }}
+            />
+          </View>
         ),
       }}
     >

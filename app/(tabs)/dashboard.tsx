@@ -257,21 +257,11 @@ export default function DashboardScreen() {
   return (
     <SafeAreaView className="flex-1 bg-background" edges={["top"]}>
       {/* Sticky Greeting Header with Glass Effect */}
-      <View style={{ overflow: "hidden" }}>
+      <View style={{ overflow: "hidden", borderRadius: 0 }}>
         <BlurView
-          intensity={60}
-          tint={isDark ? "dark" : "light"}
+          intensity={80}
+          tint="systemUltraThinMaterial"
           style={{
-            position: "absolute",
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-          }}
-        />
-        <View
-          style={{
-            backgroundColor: isDark ? "rgba(17, 24, 39, 0.7)" : "rgba(255, 255, 255, 0.7)",
             paddingHorizontal: 16,
             paddingTop: 16,
             paddingBottom: 12,
@@ -287,7 +277,7 @@ export default function DashboardScreen() {
               day: "numeric",
             })}
           </Text>
-        </View>
+        </BlurView>
       </View>
 
       <ScrollView

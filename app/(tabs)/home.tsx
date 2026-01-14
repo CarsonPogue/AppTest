@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { View, Text, ScrollView, Pressable } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useRouter } from "expo-router";
+import { useRouter, useFocusEffect } from "expo-router";
 import { useTheme } from "../../src/stores/theme";
 import { useUserStore } from "../../src/stores/user";
 import { Card } from "../../src/components/ui/Card";
+import { SubscriptionList } from "../../src/components/subscriptions/SubscriptionList";
 import { db } from "../../src/db/client";
 import { eq } from "drizzle-orm";
 import * as schema from "../../src/db/schema";
@@ -23,11 +24,15 @@ export default function HomeScreen() {
   const { user } = useUserStore();
   const router = useRouter();
   const [rooms, setRooms] = useState<Room[]>([]);
+  const [subscriptions, setSubscriptions] = useState<any[]>([]);
   const [selectedTab, setSelectedTab] = useState<"rooms" | "maintenance" | "subscriptions">("rooms");
 
-  useEffect(() => {
-    loadRooms();
-  }, [user]);
+  useFocusEffect(
+    React.useCallback(() => {
+      loadRooms();
+      loadSubscriptions();
+    }, [user])
+  );
 
   const loadRooms = async () => {
     if (!user) return;
@@ -55,6 +60,25 @@ export default function HomeScreen() {
       setRooms(roomsWithDevices);
     } catch (error) {
       console.error("Error loading rooms:", error);
+    }
+  };
+
+  const loadSubscriptions = async () => {
+    if (!user) return;
+
+    try {
+      const allSubs = await db.query.subscriptions.findMany({
+        where: eq(schema.subscriptions.userId, user.id),
+      });
+
+      const mapped = allSubs.map((sub) => ({
+        ...sub,
+        nextRenewalDate: new Date(sub.nextRenewalDate),
+      }));
+
+      setSubscriptions(mapped);
+    } catch (error) {
+      console.error("Error loading subscriptions:", error);
     }
   };
 
@@ -201,11 +225,42 @@ export default function HomeScreen() {
         )}
 
         {selectedTab === "subscriptions" && (
-          <View className="items-center justify-center py-12">
-            <Text className={`text-lg ${secondaryTextColor} text-center`}>
-              Subscription manager coming soon
-            </Text>
-          </View>
+          <>
+            {/* Add Subscription Button */}
+            <Pressable
+              onPress={() => {
+                Haptics.selectionAsync();
+                router.push("/home/subscriptions/new" as any);
+              }}
+              className="mb-4"
+            >
+              <Card variant="glass" className="flex-row items-center justify-center py-4">
+                <Ionicons name="add-circle" size={24} color="#3B82F6" />
+                <Text className="text-base font-semibold text-primary ml-2">
+                  Add Subscription
+                </Text>
+              </Card>
+            </Pressable>
+
+            {/* Subscriptions List */}
+            {subscriptions.length > 0 ? (
+              <SubscriptionList subscriptions={subscriptions} />
+            ) : (
+              <Card variant="glass" className="items-center py-12">
+                <Ionicons
+                  name="card-outline"
+                  size={48}
+                  color={isDark ? "#4B5563" : "#D1D5DB"}
+                />
+                <Text className={`text-base ${secondaryTextColor} mt-3 text-center`}>
+                  No subscriptions tracked yet
+                </Text>
+                <Text className={`text-sm ${secondaryTextColor} mt-1 text-center px-8`}>
+                  Add your subscriptions to track renewals and manage costs
+                </Text>
+              </Card>
+            )}
+          </>
         )}
       </ScrollView>
     </SafeAreaView>

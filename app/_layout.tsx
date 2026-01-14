@@ -31,8 +31,8 @@ function RootLayoutNav() {
       // Redirect to login
       router.replace("/auth/login");
     } else if (isAuthenticated && inAuthGroup) {
-      // Redirect to app
-      router.replace("/(tabs)");
+      // Redirect to dashboard after login
+      router.replace("/(tabs)/dashboard");
     }
   }, [isAuthenticated, segments, isLoading]);
 

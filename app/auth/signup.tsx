@@ -111,8 +111,8 @@ export default function SignUpScreen() {
 
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
 
-      // Navigate to main app
-      router.replace("/(tabs)");
+      // Navigate to dashboard
+      router.replace("/(tabs)/dashboard");
     } catch (error) {
       console.error("Sign up error:", error);
       Alert.alert("Error", "Failed to create account. Please try again.");

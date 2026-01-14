@@ -74,8 +74,8 @@ export default function LoginScreen() {
 
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
 
-      // Navigate to main app
-      router.replace("/(tabs)");
+      // Navigate to dashboard
+      router.replace("/(tabs)/dashboard");
     } catch (error) {
       console.error("Login error:", error);
       Alert.alert("Error", "Failed to log in. Please try again.");

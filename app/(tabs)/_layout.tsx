@@ -36,11 +36,11 @@ export default function TabsLayout() {
       }}
     >
       <Tabs.Screen
-        name="index"
+        name="dashboard"
         options={{
-          title: "Today",
+          title: "Dashboard",
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="today-outline" size={size} color={color} />
+            <Ionicons name="grid-outline" size={size} color={color} />
           ),
         }}
       />
@@ -96,6 +96,12 @@ export default function TabsLayout() {
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="home-outline" size={size} color={color} />
           ),
+        }}
+      />
+      <Tabs.Screen
+        name="index"
+        options={{
+          href: null, // Hide Today tab, replaced by Dashboard
         }}
       />
       <Tabs.Screen

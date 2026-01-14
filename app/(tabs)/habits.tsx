@@ -90,7 +90,10 @@ export default function HabitsScreen() {
             className="mb-3"
             variant="glass"
             interactive
-            onPress={() => console.log("Habit pressed:", habit.id)}
+            onPress={() => {
+              Haptics.selectionAsync();
+              router.push(`/habits/${habit.id}`);
+            }}
           >
             <View className="flex-row items-center">
               <View

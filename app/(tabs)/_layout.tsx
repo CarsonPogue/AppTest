@@ -1,9 +1,91 @@
 import { Tabs } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "../../src/stores/theme";
-import { View } from "react-native";
+import { View, Animated, Easing } from "react-native";
 import { BlurView } from "expo-blur";
 import { LinearGradient } from "expo-linear-gradient";
+import { useEffect, useRef } from "react";
+
+function AnimatedRainbowRing({ isDark }: { isDark: boolean }) {
+  const rotateAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.loop(
+      Animated.timing(rotateAnim, {
+        toValue: 1,
+        duration: 8000,
+        easing: Easing.linear,
+        useNativeDriver: true,
+      })
+    ).start();
+  }, []);
+
+  const rotate = rotateAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: ["0deg", "360deg"],
+  });
+
+  return (
+    <View
+      style={{
+        width: 64,
+        height: 64,
+        justifyContent: "center",
+        alignItems: "center",
+        marginBottom: 20,
+      }}
+    >
+      {/* Animated Rainbow gradient ring */}
+      <Animated.View
+        style={{
+          position: "absolute",
+          width: 64,
+          height: 64,
+          transform: [{ rotate }],
+        }}
+      >
+        <LinearGradient
+          colors={[
+            "#FF6B9D",
+            "#C239B3",
+            "#6E85F5",
+            "#45E3FF",
+            "#8FE85A",
+            "#FFC764",
+            "#FF6B9D",
+          ]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={{
+            width: 64,
+            height: 64,
+            borderRadius: 32,
+          }}
+        />
+      </Animated.View>
+      {/* Semi-transparent inner circle */}
+      <View
+        style={{
+          width: 56,
+          height: 56,
+          borderRadius: 28,
+          backgroundColor: isDark
+            ? "rgba(255, 255, 255, 0.15)"
+            : "rgba(255, 255, 255, 0.25)",
+          justifyContent: "center",
+          alignItems: "center",
+          shadowColor: "#3B82F6",
+          shadowOffset: { width: 0, height: 4 },
+          shadowOpacity: 0.3,
+          shadowRadius: 12,
+          elevation: 8,
+        }}
+      >
+        <Ionicons name="add" size={32} color="#FFFFFF" />
+      </View>
+    </View>
+  );
+}
 
 export default function TabsLayout() {
   const { isDark } = useTheme();
@@ -11,7 +93,6 @@ export default function TabsLayout() {
   const colors = {
     primary: isDark ? "#60A5FA" : "#3B82F6",
     inactive: isDark ? "#737373" : "#9CA3AF",
-    background: isDark ? "rgba(10, 10, 10, 0.7)" : "rgba(255, 255, 255, 0.7)",
     border: isDark ? "rgba(255, 255, 255, 0.1)" : "rgba(0, 0, 0, 0.1)",
   };
 
@@ -22,7 +103,7 @@ export default function TabsLayout() {
         tabBarActiveTintColor: colors.primary,
         tabBarInactiveTintColor: colors.inactive,
         tabBarStyle: {
-          backgroundColor: colors.background,
+          backgroundColor: "transparent",
           borderTopColor: colors.border,
           borderTopWidth: 0.5,
           height: 85,
@@ -72,50 +153,7 @@ export default function TabsLayout() {
         name="add"
         options={{
           title: "",
-          tabBarIcon: ({ focused }) => (
-            <View
-              style={{
-                width: 64,
-                height: 64,
-                justifyContent: "center",
-                alignItems: "center",
-                marginBottom: 20,
-              }}
-            >
-              {/* Rainbow gradient ring */}
-              <LinearGradient
-                colors={["#FF6B9D", "#C239B3", "#6E85F5", "#45E3FF", "#8FE85A", "#FFC764", "#FF6B9D"]}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-                style={{
-                  position: "absolute",
-                  width: 64,
-                  height: 64,
-                  borderRadius: 32,
-                }}
-              />
-              {/* Semi-transparent inner circle */}
-              <View
-                style={{
-                  width: 56,
-                  height: 56,
-                  borderRadius: 28,
-                  backgroundColor: isDark
-                    ? "rgba(59, 130, 246, 0.8)"
-                    : "rgba(59, 130, 246, 0.9)",
-                  justifyContent: "center",
-                  alignItems: "center",
-                  shadowColor: "#3B82F6",
-                  shadowOffset: { width: 0, height: 4 },
-                  shadowOpacity: 0.4,
-                  shadowRadius: 12,
-                  elevation: 8,
-                }}
-              >
-                <Ionicons name="add" size={32} color="#FFFFFF" />
-              </View>
-            </View>
-          ),
+          tabBarIcon: ({ focused }) => <AnimatedRainbowRing isDark={isDark} />,
           tabBarLabel: () => null,
         }}
       />

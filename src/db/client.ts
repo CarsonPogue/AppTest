@@ -63,12 +63,31 @@ export function ensureDbReady() {
         CREATE TABLE IF NOT EXISTS user_settings (
           id TEXT PRIMARY KEY NOT NULL,
           user_id TEXT NOT NULL,
+          notifications_habits INTEGER DEFAULT 1,
+          notifications_people INTEGER DEFAULT 1,
+          notifications_subscriptions INTEGER DEFAULT 1,
+          notifications_home INTEGER DEFAULT 1,
+          quiet_hours_enabled INTEGER DEFAULT 0,
+          quiet_hours_start TEXT DEFAULT '22:00',
+          quiet_hours_end TEXT DEFAULT '07:00',
+          use_notes_for_suggestions INTEGER DEFAULT 0,
+          analytics_enabled INTEGER DEFAULT 0,
           greeting_style TEXT DEFAULT 'casual',
           timezone_override TEXT,
           workdays TEXT DEFAULT '1,2,3,4,5',
           created_at TEXT NOT NULL
         );
       `);
+      // Add columns if they don't exist (for existing databases)
+      addColumnSafe("user_settings", "notifications_habits INTEGER DEFAULT 1");
+      addColumnSafe("user_settings", "notifications_people INTEGER DEFAULT 1");
+      addColumnSafe("user_settings", "notifications_subscriptions INTEGER DEFAULT 1");
+      addColumnSafe("user_settings", "notifications_home INTEGER DEFAULT 1");
+      addColumnSafe("user_settings", "quiet_hours_enabled INTEGER DEFAULT 0");
+      addColumnSafe("user_settings", "quiet_hours_start TEXT DEFAULT '22:00'");
+      addColumnSafe("user_settings", "quiet_hours_end TEXT DEFAULT '07:00'");
+      addColumnSafe("user_settings", "use_notes_for_suggestions INTEGER DEFAULT 0");
+      addColumnSafe("user_settings", "analytics_enabled INTEGER DEFAULT 0");
 
       // EVENTS
       expo.execSync(`

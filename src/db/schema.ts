@@ -53,11 +53,13 @@ export const habits = sqliteTable("habits", {
 
 export const habitLogs = sqliteTable("habit_logs", {
   id: text("id").primaryKey(),
+  userId: text("user_id"),
   habitId: text("habit_id").notNull().references(() => habits.id),
   completedAt: text("completed_at").notNull(),
   skipped: integer("skipped").notNull(),
   skipReason: text("skip_reason"),
   note: text("note"),
+  notes: text("notes"),
 });
 
 // People (Enhanced for Relationship Intelligence)

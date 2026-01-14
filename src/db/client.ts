@@ -159,9 +159,11 @@ export function ensureDbReady() {
           created_at TEXT
         );
       `);
+      addColumnSafe("habit_logs", "user_id TEXT");
       addColumnSafe("habit_logs", "skipped INTEGER DEFAULT 0");
       addColumnSafe("habit_logs", "skip_reason TEXT");
       addColumnSafe("habit_logs", "note TEXT");
+      addColumnSafe("habit_logs", "notes TEXT");
 
       // PEOPLE
       expo.execSync(`

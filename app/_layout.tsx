@@ -2,60 +2,71 @@ import "../global.css";
 import "react-native-gesture-handler";
 
 import { useEffect } from "react";
-import { Stack } from "expo-router";
+import { Stack, useRouter, useSegments } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useTheme } from "../src/stores/theme";
 import { useUserStore } from "../src/stores/user";
+import { View, ActivityIndicator } from "react-native";
 
 const queryClient = new QueryClient();
 
-export default function RootLayout() {
+function RootLayoutNav() {
   const { isDark } = useTheme();
-  const { setUser } = useUserStore();
+  const { isAuthenticated, isLoading, checkAuth } = useUserStore();
+  const segments = useSegments();
+  const router = useRouter();
 
   useEffect(() => {
-    let cancelled = false;
+    checkAuth();
+  }, []);
 
-    (async () => {
-      try {
-        const dbMod = await import("../src/db/client");
-        const seedMod = await import("../src/db/seed");
+  useEffect(() => {
+    if (isLoading) return;
 
-        const db = dbMod.db;
-        const seedDatabase = seedMod.seedDatabase;
+    const inAuthGroup = segments[0] === "auth";
 
-        const result = await db.query.users.findFirst();
-        if (!result) {
-          await seedDatabase();
-        }
+    if (!isAuthenticated && !inAuthGroup) {
+      // Redirect to login
+      router.replace("/auth/login");
+    } else if (isAuthenticated && inAuthGroup) {
+      // Redirect to app
+      router.replace("/(tabs)");
+    }
+  }, [isAuthenticated, segments, isLoading]);
 
-        const user = await db.query.users.findFirst();
-        if (!cancelled && user) {
-          setUser({
-            id: user.id,
-            email: user.email,
-            name: user.name,
-            avatarUrl: user.avatarUrl || undefined,
-            timezone: user.timezone,
-          });
-        }
-      } catch (error) {
-        console.error("Database initialization error:", error);
-      }
-    })();
+  if (isLoading) {
+    return (
+      <View
+        style={{
+          flex: 1,
+          justifyContent: "center",
+          alignItems: "center",
+          backgroundColor: isDark ? "#0f1419" : "#f0f4f8",
+        }}
+      >
+        <ActivityIndicator size="large" color="#3B82F6" />
+      </View>
+    );
+  }
 
-    return () => {
-      cancelled = true;
-    };
-  }, [setUser]);
+  return (
+    <>
+      <StatusBar style={isDark ? "light" : "dark"} />
+      <Stack screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="auth" options={{ headerShown: false }} />
+        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+      </Stack>
+    </>
+  );
+}
 
+export default function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <QueryClientProvider client={queryClient}>
-        <StatusBar style={isDark ? "light" : "dark"} />
-        <Stack screenOptions={{ headerShown: false }} />
+        <RootLayoutNav />
       </QueryClientProvider>
     </GestureHandlerRootView>
   );

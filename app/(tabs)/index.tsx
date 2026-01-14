@@ -222,7 +222,7 @@ export default function TodayScreen() {
         {/* Greeting */}
         <View className="mb-6">
           <Text className={`text-3xl font-bold ${textColor}`}>
-            {getGreeting()}, {user?.name || "there"}
+            {getGreeting()}, {user?.firstName || "there"}
           </Text>
           <Text className={`text-base mt-1 ${secondaryTextColor}`}>
             {new Date().toLocaleDateString("en-US", {

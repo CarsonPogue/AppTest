@@ -23,7 +23,10 @@ export function getDayName(dayIndex: number): string {
 
 export function getGreeting(): string {
   const hour = new Date().getHours();
-  if (hour < 12) return "Good morning";
-  if (hour < 18) return "Good afternoon";
-  return "Good evening";
+  // Morning: 5:00–11:59
+  if (hour >= 5 && hour < 12) return "Good Morning";
+  // Afternoon: 12:00–16:59
+  if (hour >= 12 && hour < 17) return "Good Afternoon";
+  // Evening: 17:00–4:59
+  return "Good Evening";
 }

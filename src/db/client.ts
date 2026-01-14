@@ -76,6 +76,7 @@ export function ensureDbReady() {
           id TEXT PRIMARY KEY NOT NULL,
           user_id TEXT NOT NULL,
           title TEXT NOT NULL,
+          description TEXT,
           type TEXT DEFAULT 'event',
           status TEXT DEFAULT 'confirmed',
           start_time TEXT NOT NULL,
@@ -83,14 +84,23 @@ export function ensureDbReady() {
           start_at TEXT,
           end_at TEXT,
           location TEXT,
+          color TEXT,
+          all_day INTEGER DEFAULT 0,
+          recurrence TEXT,
           notes TEXT,
+          reminder_minutes INTEGER DEFAULT 15,
           created_at TEXT NOT NULL
         );
       `);
+      addColumnSafe("events", "description TEXT");
       addColumnSafe("events", "type TEXT DEFAULT 'event'");
       addColumnSafe("events", "status TEXT DEFAULT 'confirmed'");
       addColumnSafe("events", "start_time TEXT");
       addColumnSafe("events", "end_time TEXT");
+      addColumnSafe("events", "color TEXT");
+      addColumnSafe("events", "all_day INTEGER DEFAULT 0");
+      addColumnSafe("events", "recurrence TEXT");
+      addColumnSafe("events", "reminder_minutes INTEGER DEFAULT 15");
 
       // HABITS
       expo.execSync(`
@@ -100,16 +110,22 @@ export function ensureDbReady() {
           title TEXT NOT NULL,
           description TEXT,
           frequency TEXT DEFAULT 'daily',
+          frequency_config TEXT,
+          target_count INTEGER DEFAULT 1,
           target_per_period INTEGER DEFAULT 1,
           archived INTEGER DEFAULT 0,
           icon TEXT,
           color TEXT,
+          reminder_time TEXT,
           created_at TEXT NOT NULL
         );
       `);
       addColumnSafe("habits", "archived INTEGER DEFAULT 0");
       addColumnSafe("habits", "icon TEXT");
       addColumnSafe("habits", "color TEXT");
+      addColumnSafe("habits", "frequency_config TEXT");
+      addColumnSafe("habits", "target_count INTEGER DEFAULT 1");
+      addColumnSafe("habits", "reminder_time TEXT");
 
       // HABIT LOGS
       expo.execSync(`
@@ -118,9 +134,15 @@ export function ensureDbReady() {
           habit_id TEXT NOT NULL,
           user_id TEXT,
           completed_at TEXT NOT NULL,
+          skipped INTEGER DEFAULT 0,
+          skip_reason TEXT,
+          note TEXT,
           created_at TEXT
         );
       `);
+      addColumnSafe("habit_logs", "skipped INTEGER DEFAULT 0");
+      addColumnSafe("habit_logs", "skip_reason TEXT");
+      addColumnSafe("habit_logs", "note TEXT");
 
       // PEOPLE
       expo.execSync(`
@@ -155,13 +177,29 @@ export function ensureDbReady() {
           id TEXT PRIMARY KEY NOT NULL,
           user_id TEXT NOT NULL,
           name TEXT NOT NULL,
+          amount INTEGER DEFAULT 0,
           amount_cents INTEGER DEFAULT 0,
+          currency TEXT DEFAULT 'USD',
+          billing_cycle TEXT DEFAULT 'monthly',
           billing_period TEXT DEFAULT 'monthly',
+          next_renewal_date TEXT,
           next_bill_date TEXT,
+          category TEXT NOT NULL,
+          payment_method TEXT,
+          auto_renew INTEGER DEFAULT 1,
           status TEXT DEFAULT 'active',
+          notes TEXT,
           created_at TEXT NOT NULL
         );
       `);
+      addColumnSafe("subscriptions", "amount INTEGER DEFAULT 0");
+      addColumnSafe("subscriptions", "currency TEXT DEFAULT 'USD'");
+      addColumnSafe("subscriptions", "billing_cycle TEXT DEFAULT 'monthly'");
+      addColumnSafe("subscriptions", "next_renewal_date TEXT");
+      addColumnSafe("subscriptions", "category TEXT");
+      addColumnSafe("subscriptions", "payment_method TEXT");
+      addColumnSafe("subscriptions", "auto_renew INTEGER DEFAULT 1");
+      addColumnSafe("subscriptions", "notes TEXT");
 
       // BOOKINGS
       expo.execSync(`
@@ -173,7 +211,23 @@ export function ensureDbReady() {
         );
       `);
 
-      // MAINTENANCE TASKS
+      // MAINTENANCE ITEMS (Simplified tracking)
+      expo.execSync(`
+        CREATE TABLE IF NOT EXISTS maintenance_items (
+          id TEXT PRIMARY KEY NOT NULL,
+          user_id TEXT NOT NULL,
+          title TEXT NOT NULL,
+          category TEXT NOT NULL,
+          priority TEXT DEFAULT 'normal',
+          interval_days INTEGER NOT NULL,
+          next_due_date TEXT NOT NULL,
+          last_completed_date TEXT,
+          notes TEXT,
+          created_at TEXT NOT NULL
+        );
+      `);
+
+      // MAINTENANCE TASKS (Advanced asset-based tracking)
       expo.execSync(`
         CREATE TABLE IF NOT EXISTS maintenance_tasks (
           id TEXT PRIMARY KEY NOT NULL,
@@ -204,37 +258,16 @@ export function ensureDbReady() {
           room_id TEXT,
           name TEXT NOT NULL,
           type TEXT,
+          state TEXT,
           state_json TEXT,
+          manufacturer TEXT,
+          model TEXT,
           created_at TEXT NOT NULL
         );
       `);
-      // People
-expo.execSync(`
-  CREATE TABLE IF NOT EXISTS people (
-    id TEXT PRIMARY KEY NOT NULL,
-    user_id TEXT NOT NULL,
-    name TEXT NOT NULL,
-    avatar_url TEXT,
-    relationship TEXT,
-    touchpoint_frequency_days INTEGER NOT NULL DEFAULT 14,
-    last_contact_date TEXT,
-    notes TEXT,
-    created_at TEXT NOT NULL
-  );
-`);
-
-// Interactions (used by people detail screens)
-expo.execSync(`
-  CREATE TABLE IF NOT EXISTS interactions (
-    id TEXT PRIMARY KEY NOT NULL,
-    user_id TEXT NOT NULL,
-    person_id TEXT NOT NULL,
-    type TEXT NOT NULL,
-    notes TEXT,
-    occurred_at TEXT NOT NULL,
-    created_at TEXT NOT NULL
-  );
-`);
+      addColumnSafe("smart_home_devices", "state TEXT");
+      addColumnSafe("smart_home_devices", "manufacturer TEXT");
+      addColumnSafe("smart_home_devices", "model TEXT");
 
       // quick visibility
       const tables = expo.getAllSync(
@@ -246,17 +279,6 @@ expo.execSync(`
       console.log("users columns:", usersCols.map((c: any) => c.name));
 
       console.log("DB migrate done");
-
-      // Subscriptions columns (safe to re-run)
-const subColumns = [
-  "next_renewal_date TEXT", // ISO date string
-];
-
-for (const col of subColumns) {
-  try {
-    expo.execSync(`ALTER TABLE subscriptions ADD COLUMN ${col};`);
-  } catch {}
-}
     })();
   }
   return ready;

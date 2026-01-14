@@ -2,6 +2,8 @@ import { Tabs } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "../../src/stores/theme";
 import { View } from "react-native";
+import { BlurView } from "expo-blur";
+import { LinearGradient } from "expo-linear-gradient";
 
 export default function TabsLayout() {
   const { isDark } = useTheme();
@@ -9,7 +11,7 @@ export default function TabsLayout() {
   const colors = {
     primary: isDark ? "#60A5FA" : "#3B82F6",
     inactive: isDark ? "#737373" : "#9CA3AF",
-    background: isDark ? "rgba(10, 10, 10, 0.95)" : "rgba(255, 255, 255, 0.95)",
+    background: isDark ? "rgba(10, 10, 10, 0.7)" : "rgba(255, 255, 255, 0.7)",
     border: isDark ? "rgba(255, 255, 255, 0.1)" : "rgba(0, 0, 0, 0.1)",
   };
 
@@ -22,17 +24,30 @@ export default function TabsLayout() {
         tabBarStyle: {
           backgroundColor: colors.background,
           borderTopColor: colors.border,
-          borderTopWidth: 1,
-          height: 70,
-          paddingBottom: 12,
+          borderTopWidth: 0.5,
+          height: 85,
+          paddingBottom: 20,
           paddingTop: 8,
           position: "absolute",
-          backdropFilter: "blur(20px)",
         },
         tabBarLabelStyle: {
           fontSize: 11,
           fontWeight: "500",
+          marginTop: 4,
         },
+        tabBarBackground: () => (
+          <BlurView
+            intensity={isDark ? 80 : 100}
+            tint={isDark ? "dark" : "light"}
+            style={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+            }}
+          />
+        ),
       }}
     >
       <Tabs.Screen
@@ -60,21 +75,45 @@ export default function TabsLayout() {
           tabBarIcon: ({ focused }) => (
             <View
               style={{
-                width: 56,
-                height: 56,
-                borderRadius: 28,
-                backgroundColor: colors.primary,
+                width: 64,
+                height: 64,
                 justifyContent: "center",
                 alignItems: "center",
                 marginBottom: 20,
-                shadowColor: colors.primary,
-                shadowOffset: { width: 0, height: 4 },
-                shadowOpacity: 0.3,
-                shadowRadius: 8,
-                elevation: 8,
               }}
             >
-              <Ionicons name="add" size={28} color="#FFFFFF" />
+              {/* Rainbow gradient ring */}
+              <LinearGradient
+                colors={["#FF6B9D", "#C239B3", "#6E85F5", "#45E3FF", "#8FE85A", "#FFC764", "#FF6B9D"]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={{
+                  position: "absolute",
+                  width: 64,
+                  height: 64,
+                  borderRadius: 32,
+                }}
+              />
+              {/* Semi-transparent inner circle */}
+              <View
+                style={{
+                  width: 56,
+                  height: 56,
+                  borderRadius: 28,
+                  backgroundColor: isDark
+                    ? "rgba(59, 130, 246, 0.8)"
+                    : "rgba(59, 130, 246, 0.9)",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  shadowColor: "#3B82F6",
+                  shadowOffset: { width: 0, height: 4 },
+                  shadowOpacity: 0.4,
+                  shadowRadius: 12,
+                  elevation: 8,
+                }}
+              >
+                <Ionicons name="add" size={32} color="#FFFFFF" />
+              </View>
             </View>
           ),
           tabBarLabel: () => null,
@@ -85,7 +124,7 @@ export default function TabsLayout() {
         options={{
           title: "Life",
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="apps-outline" size={size} color={color} />
+            <Ionicons name="leaf-outline" size={size} color={color} />
           ),
         }}
       />

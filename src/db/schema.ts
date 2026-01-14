@@ -163,7 +163,23 @@ export const subscriptions = sqliteTable("subscriptions", {
   notes: text("notes"),
 });
 
-// Maintenance
+// Maintenance Items (Simplified version for direct tracking)
+export const maintenanceItems = sqliteTable("maintenance_items", {
+  id: text("id").primaryKey(),
+  userId: text("user_id").notNull().references(() => users.id),
+  title: text("title").notNull(),
+  category: text("category").notNull(), // hvac, plumbing, electrical, appliance, lawn, vehicle, home, other
+  priority: text("priority").notNull().default("normal"), // low, normal, high
+  intervalDays: integer("interval_days").notNull(),
+  nextDueDate: text("next_due_date").notNull(),
+  lastCompletedDate: text("last_completed_date"),
+  notes: text("notes"),
+  createdAt: text("created_at")
+    .notNull()
+    .$defaultFn(() => new Date().toISOString()),
+});
+
+// Maintenance (Advanced asset-based tracking)
 export const maintenanceAssets = sqliteTable("maintenance_assets", {
   id: text("id").primaryKey(),
   userId: text("user_id").notNull().references(() => users.id),

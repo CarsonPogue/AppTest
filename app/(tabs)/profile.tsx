@@ -41,30 +41,6 @@ export default function ProfileScreen() {
     },
   ];
 
-  const featuresMenuItems: MenuItem[] = [
-    {
-      title: "Subscriptions",
-      icon: "card",
-      route: "/home?tab=subscriptions",
-      color: "#EC4899",
-      description: "Track your recurring payments",
-    },
-    {
-      title: "Maintenance",
-      icon: "construct",
-      route: "/home?tab=maintenance",
-      color: "#10B981",
-      description: "Home and vehicle tasks",
-    },
-    {
-      title: "Smart Home",
-      icon: "home",
-      route: "/home?tab=rooms",
-      color: "#F59E0B",
-      description: "Rooms and devices",
-    },
-  ];
-
   const renderMenuItem = (item: MenuItem) => (
     <Pressable
       key={item.title}
@@ -129,14 +105,6 @@ export default function ProfileScreen() {
               Account
             </Text>
             {profileMenuItems.map(renderMenuItem)}
-          </View>
-
-          {/* Features Section */}
-          <View className="mb-6">
-            <Text className={`text-sm font-semibold mb-3 ${secondaryTextColor} uppercase`}>
-              Features
-            </Text>
-            {featuresMenuItems.map(renderMenuItem)}
           </View>
 
           {/* About Section */}

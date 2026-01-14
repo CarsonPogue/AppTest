@@ -89,7 +89,7 @@ export default function AddScreen() {
     setVisible(false);
     setTimeout(() => {
       router.replace("/(tabs)/dashboard");
-    }, 250);
+    }, 150);
   };
 
   const handleOptionPress = (route: string) => {

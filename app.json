@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "Adult CRM",
-    "slug": "adult-crm",
+    "name": "Praxis",
+    "slug": "praxis",
     "version": "0.1.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -14,14 +14,14 @@
     "assetBundlePatterns": ["**/*"],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.adultcrm.app"
+      "bundleIdentifier": "com.praxis.app"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.adultcrm.app"
+      "package": "com.praxis.app"
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -31,13 +31,13 @@
       [
         "expo-local-authentication",
         {
-          "faceIDPermission": "Allow Adult CRM to use Face ID for secure access."
+          "faceIDPermission": "Allow Praxis to use Face ID for secure access."
         }
       ]
     ],
     "experiments": {
       "typedRoutes": true
     },
-    "scheme": "adultcrm"
+    "scheme": "praxis"
   }
 }

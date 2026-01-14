@@ -131,7 +131,7 @@ export default function SignUpScreen() {
           </View>
           <Text className={`text-3xl font-bold ${textColor}`}>Create Account</Text>
           <Text className={`text-base mt-2 ${secondaryTextColor} text-center`}>
-            Join Adult CRM and take control of your life
+            Join Praxis and take control of your life
           </Text>
         </View>
 

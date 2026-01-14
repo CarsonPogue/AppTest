@@ -110,7 +110,7 @@ export default function ProfileScreen() {
           {/* About Section */}
           <Card variant="glass" className="items-center py-6 mb-6">
             <Text className={`text-lg font-semibold ${textColor} mb-2`}>
-              Adult CRM
+              Praxis
             </Text>
             <Text className={`text-sm ${secondaryTextColor} mb-4`}>
               Version 1.0.0

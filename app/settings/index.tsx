@@ -555,7 +555,7 @@ export default function SettingsScreen() {
         {/* Version */}
         <View className="items-center pb-8">
           <Text className={`text-xs ${secondaryTextColor}`}>
-            Adult CRM v1.0.0
+            Praxis v1.0.0
           </Text>
         </View>
       </ScrollView>

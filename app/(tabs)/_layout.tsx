@@ -103,9 +103,9 @@ export default function TabsLayout() {
         tabBarStyle: {
           backgroundColor: "transparent",
           borderTopWidth: 0,
-          height: 70,
-          paddingBottom: 8,
-          paddingTop: 8,
+          height: 60,
+          paddingBottom: 6,
+          paddingTop: 6,
           paddingHorizontal: 4,
           position: "absolute",
           bottom: 20,
@@ -122,7 +122,7 @@ export default function TabsLayout() {
         tabBarLabelStyle: {
           fontSize: 11,
           fontWeight: "500",
-          marginTop: 4,
+          marginTop: 2,
         },
         tabBarBackground: () => (
           <BlurView

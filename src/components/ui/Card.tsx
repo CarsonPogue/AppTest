@@ -10,7 +10,7 @@ const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
 interface CardProps extends Omit<PressableProps, "style"> {
   children: React.ReactNode;
-  variant?: "base" | "elevated";
+  variant?: "base" | "elevated" | "glass" | "glass-strong";
   interactive?: boolean;
   className?: string;
 }
@@ -44,11 +44,13 @@ export function Card({
     onPressOut?.(e);
   };
 
-  const baseClasses = "rounded-xl p-4";
+  const baseClasses = "rounded-2xl p-4";
 
   const variantClasses = {
-    base: "bg-surface border border-border",
-    elevated: "bg-surface-elevated shadow-md",
+    base: "bg-surface border border-border shadow-sm",
+    elevated: "bg-surface-elevated shadow-lg",
+    glass: "glass shadow-md",
+    "glass-strong": "glass-strong shadow-lg",
   };
 
   if (interactive && props.onPress) {

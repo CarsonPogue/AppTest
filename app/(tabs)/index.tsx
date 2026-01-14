@@ -243,7 +243,7 @@ export default function TodayScreen() {
               <Card
                 key={habit.id}
                 className="mb-2 flex-row items-center"
-                variant="elevated"
+                variant="glass"
               >
                 <Checkbox
                   checked={habit.completed}
@@ -272,7 +272,7 @@ export default function TodayScreen() {
               Upcoming
             </Text>
             {events.map((event) => (
-              <Card key={event.id} className="mb-2" variant="base">
+              <Card key={event.id} className="mb-2" variant="glass">
                 <View className="flex-row items-start">
                   <View className="bg-primary/10 rounded-lg p-2 mr-3">
                     <Ionicons
@@ -307,7 +307,7 @@ export default function TodayScreen() {
               Touchpoints Due
             </Text>
             {peopleDue.map((person) => (
-              <Card key={person.id} className="mb-2" variant="base">
+              <Card key={person.id} className="mb-2" variant="glass">
                 <View className="flex-row items-center">
                   <View
                     className={`w-10 h-10 rounded-full items-center justify-center mr-3 ${
@@ -344,7 +344,7 @@ export default function TodayScreen() {
             <Text className={`text-lg font-semibold mb-3 ${textColor}`}>
               Action Items
             </Text>
-            <Card variant="base">
+            <Card variant="glass">
               {stats.pendingBookings > 0 && (
                 <View className="flex-row items-center py-2">
                   <View className="bg-primary/10 rounded-full w-6 h-6 items-center justify-center mr-3">

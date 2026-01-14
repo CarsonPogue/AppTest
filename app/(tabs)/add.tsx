@@ -97,126 +97,71 @@ export default function AddScreen() {
     <Modal
       visible={visible}
       transparent
-      animationType="none"
+      animationType="fade"
       onRequestClose={handleClose}
+      statusBarTranslucent
     >
-      {/* Blur Background with Vignette */}
-      <Animated.View
-        entering={FadeIn.duration(300)}
-        exiting={FadeOut.duration(200)}
-        style={{ flex: 1 }}
-      >
-        <Pressable onPress={handleClose} style={{ flex: 1 }}>
-          <BlurView
-            intensity={40}
-            tint={isDark ? "dark" : "light"}
-            style={{
-              position: "absolute",
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-            }}
-          />
-          {/* Vignette overlay */}
-          <View
-            style={{
-              position: "absolute",
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              backgroundColor: "rgba(0, 0, 0, 0.4)",
-            }}
-          />
+      <Pressable onPress={handleClose} style={{ flex: 1 }}>
+        {/* Subtle blur and dim background */}
+        <BlurView
+          intensity={20}
+          tint={isDark ? "dark" : "light"}
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+          }}
+        />
+        <View
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: "rgba(0, 0, 0, 0.3)",
+          }}
+        />
 
-          <SafeAreaView style={{ flex: 1, justifyContent: "center", paddingHorizontal: 32 }}>
-            <Pressable onPress={(e) => e.stopPropagation()}>
-              <View style={{ gap: 16 }}>
-                {quickAddOptions.map((option, index) => (
-                  <Animated.View
-                    key={option.id}
-                    entering={SlideInDown.delay(index * 50)
-                      .duration(400)
-                      .springify()
-                      .damping(15)}
-                  >
-                    <Pressable
-                      onPress={() => handleOptionPress(option.route)}
-                      style={{
-                        borderRadius: 24,
-                        overflow: "hidden",
-                        shadowColor: option.color,
-                        shadowOffset: { width: 0, height: 4 },
-                        shadowOpacity: 0.3,
-                        shadowRadius: 12,
-                        elevation: 8,
-                      }}
-                    >
-                      <BlurView
-                        intensity={30}
-                        tint={isDark ? "dark" : "light"}
-                        style={{
-                          flexDirection: "row",
-                          alignItems: "center",
-                          paddingVertical: 20,
-                          paddingHorizontal: 24,
-                        }}
-                      >
-                        {/* Color background with glass effect */}
-                        <View
-                          style={{
-                            position: "absolute",
-                            top: 0,
-                            left: 0,
-                            right: 0,
-                            bottom: 0,
-                            backgroundColor: option.color,
-                            opacity: 0.85,
-                          }}
-                        />
-
-                        <Ionicons name={option.icon} size={28} color="#FFFFFF" />
-                        <Text
-                          style={{
-                            fontSize: 18,
-                            fontWeight: "600",
-                            color: "#FFFFFF",
-                            marginLeft: 16,
-                            flex: 1,
-                          }}
-                        >
-                          {option.title}
-                        </Text>
-                        <Ionicons name="chevron-forward" size={22} color="#FFFFFF" />
-                      </BlurView>
-                    </Pressable>
-                  </Animated.View>
-                ))}
-
-                {/* Cancel Button */}
+        {/* Popup centered with subtle scale animation */}
+        <View style={{ flex: 1, justifyContent: "center", paddingHorizontal: 32, paddingBottom: 100 }}>
+          <Pressable onPress={(e) => e.stopPropagation()}>
+            <Animated.View
+              entering={FadeIn.duration(200).withInitialValues({ opacity: 0 })}
+              exiting={FadeOut.duration(150)}
+              style={{ gap: 12 }}
+            >
+              {quickAddOptions.map((option, index) => (
                 <Animated.View
-                  entering={SlideInDown.delay(quickAddOptions.length * 50 + 100)
-                    .duration(400)
-                    .springify()
-                    .damping(15)}
+                  key={option.id}
+                  entering={FadeIn.delay(index * 30).duration(200)}
+                  exiting={FadeOut.duration(100)}
                 >
                   <Pressable
-                    onPress={handleClose}
+                    onPress={() => handleOptionPress(option.route)}
                     style={{
-                      borderRadius: 24,
+                      borderRadius: 20,
                       overflow: "hidden",
-                      marginTop: 8,
+                      shadowColor: option.color,
+                      shadowOffset: { width: 0, height: 2 },
+                      shadowOpacity: 0.2,
+                      shadowRadius: 8,
+                      elevation: 5,
                     }}
                   >
                     <BlurView
-                      intensity={50}
+                      intensity={30}
                       tint={isDark ? "dark" : "light"}
                       style={{
-                        paddingVertical: 18,
+                        flexDirection: "row",
                         alignItems: "center",
+                        paddingVertical: 16,
+                        paddingHorizontal: 20,
                       }}
                     >
+                      {/* Color background with glass effect */}
                       <View
                         style={{
                           position: "absolute",
@@ -224,28 +169,78 @@ export default function AddScreen() {
                           left: 0,
                           right: 0,
                           bottom: 0,
-                          backgroundColor: isDark
-                            ? "rgba(255, 255, 255, 0.1)"
-                            : "rgba(0, 0, 0, 0.05)",
+                          backgroundColor: option.color,
+                          opacity: 0.85,
                         }}
                       />
+
+                      <Ionicons name={option.icon} size={24} color="#FFFFFF" />
                       <Text
                         style={{
-                          fontSize: 16,
+                          fontSize: 17,
                           fontWeight: "600",
-                          color: isDark ? "#E5E7EB" : "#374151",
+                          color: "#FFFFFF",
+                          marginLeft: 14,
+                          flex: 1,
                         }}
                       >
-                        Cancel
+                        {option.title}
                       </Text>
+                      <Ionicons name="chevron-forward" size={20} color="#FFFFFF" />
                     </BlurView>
                   </Pressable>
                 </Animated.View>
-              </View>
-            </Pressable>
-          </SafeAreaView>
-        </Pressable>
-      </Animated.View>
+              ))}
+
+              {/* Cancel Button */}
+              <Animated.View
+                entering={FadeIn.delay(quickAddOptions.length * 30 + 50).duration(200)}
+                exiting={FadeOut.duration(100)}
+              >
+                <Pressable
+                  onPress={handleClose}
+                  style={{
+                    borderRadius: 20,
+                    overflow: "hidden",
+                    marginTop: 4,
+                  }}
+                >
+                  <BlurView
+                    intensity={50}
+                    tint={isDark ? "dark" : "light"}
+                    style={{
+                      paddingVertical: 16,
+                      alignItems: "center",
+                    }}
+                  >
+                    <View
+                      style={{
+                        position: "absolute",
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        backgroundColor: isDark
+                          ? "rgba(255, 255, 255, 0.1)"
+                          : "rgba(0, 0, 0, 0.05)",
+                      }}
+                    />
+                    <Text
+                      style={{
+                        fontSize: 16,
+                        fontWeight: "600",
+                        color: isDark ? "#E5E7EB" : "#374151",
+                      }}
+                    >
+                      Cancel
+                    </Text>
+                  </BlurView>
+                </Pressable>
+              </Animated.View>
+            </Animated.View>
+          </Pressable>
+        </View>
+      </Pressable>
     </Modal>
   );
 }

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { View, Text, ScrollView, Pressable } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useRouter, useFocusEffect } from "expo-router";
 import { useTheme } from "../../src/stores/theme";
 import { useUserStore } from "../../src/stores/user";
 import { Card } from "../../src/components/ui/Card";
@@ -8,6 +9,7 @@ import { db } from "../../src/db/client";
 import { eq, and } from "drizzle-orm";
 import * as schema from "../../src/db/schema";
 import { Ionicons } from "@expo/vector-icons";
+import * as Haptics from "expo-haptics";
 
 type Habit = {
   id: string;
@@ -23,11 +25,14 @@ type Habit = {
 export default function HabitsScreen() {
   const { isDark } = useTheme();
   const { user } = useUserStore();
+  const router = useRouter();
   const [habits, setHabits] = useState<Habit[]>([]);
 
-  useEffect(() => {
-    loadHabits();
-  }, [user]);
+  useFocusEffect(
+    React.useCallback(() => {
+      loadHabits();
+    }, [user])
+  );
 
   const loadHabits = async () => {
     if (!user) return;
@@ -66,7 +71,13 @@ export default function HabitsScreen() {
       <View className="px-4 py-6">
         <View className="flex-row justify-between items-center mb-6">
           <Text className={`text-3xl font-bold ${textColor}`}>Habits</Text>
-          <Pressable className="bg-primary rounded-full w-10 h-10 items-center justify-center">
+          <Pressable
+            className="bg-primary rounded-full w-10 h-10 items-center justify-center"
+            onPress={() => {
+              Haptics.selectionAsync();
+              router.push("/habits/new");
+            }}
+          >
             <Ionicons name="add" size={24} color="white" />
           </Pressable>
         </View>
@@ -77,7 +88,7 @@ export default function HabitsScreen() {
           <Card
             key={habit.id}
             className="mb-3"
-            variant="elevated"
+            variant="glass"
             interactive
             onPress={() => console.log("Habit pressed:", habit.id)}
           >

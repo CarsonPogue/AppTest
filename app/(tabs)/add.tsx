@@ -80,9 +80,10 @@ export default function AddScreen() {
 
   const handleOptionPress = (route: string) => {
     Haptics.selectionAsync();
-    handleClose();
-    // For now, just go back - we'll implement these routes next
-    // setTimeout(() => router.push(route), 300);
+    setVisible(false);
+    setTimeout(() => {
+      router.push(route as any);
+    }, 200);
   };
 
   const textColor = isDark ? "text-white" : "text-gray-900";

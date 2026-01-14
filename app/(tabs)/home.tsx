@@ -93,7 +93,7 @@ export default function HomeScreen() {
         {selectedTab === "rooms" && (
           <>
             {/* Demo Mode Banner */}
-            <Card className="mb-4 bg-primary/10">
+            <Card className="mb-4 bg-primary/10" variant="glass">
               <View className="flex-row items-center">
                 <Ionicons name="information-circle" size={24} color="#3B82F6" />
                 <Text className={`text-sm ml-3 flex-1 ${textColor}`}>
@@ -108,7 +108,7 @@ export default function HomeScreen() {
                 <Card
                   key={room.id}
                   className="w-[48%] mb-4"
-                  variant="elevated"
+                  variant="glass"
                   interactive
                   onPress={() => console.log("Room pressed:", room.id)}
                 >

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { View, Text, ScrollView, Pressable } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useRouter, useFocusEffect } from "expo-router";
 import { useTheme } from "../../src/stores/theme";
 import { useUserStore } from "../../src/stores/user";
 import { Card } from "../../src/components/ui/Card";
@@ -9,6 +10,7 @@ import { eq } from "drizzle-orm";
 import * as schema from "../../src/db/schema";
 import { daysFromNow } from "../../src/utils/date";
 import { Ionicons } from "@expo/vector-icons";
+import * as Haptics from "expo-haptics";
 
 type Person = {
   id: string;
@@ -23,11 +25,14 @@ type Person = {
 export default function PeopleScreen() {
   const { isDark } = useTheme();
   const { user } = useUserStore();
+  const router = useRouter();
   const [people, setPeople] = useState<Person[]>([]);
 
-  useEffect(() => {
-    loadPeople();
-  }, [user]);
+  useFocusEffect(
+    React.useCallback(() => {
+      loadPeople();
+    }, [user])
+  );
 
   const loadPeople = async () => {
     if (!user) return;
@@ -108,7 +113,13 @@ export default function PeopleScreen() {
       <View className="px-4 py-6">
         <View className="flex-row justify-between items-center mb-6">
           <Text className={`text-3xl font-bold ${textColor}`}>People</Text>
-          <Pressable className="bg-primary rounded-full w-10 h-10 items-center justify-center">
+          <Pressable
+            className="bg-primary rounded-full w-10 h-10 items-center justify-center"
+            onPress={() => {
+              Haptics.selectionAsync();
+              router.push("/people/new");
+            }}
+          >
             <Ionicons name="add" size={24} color="white" />
           </Pressable>
         </View>
@@ -119,7 +130,7 @@ export default function PeopleScreen() {
           <Card
             key={person.id}
             className="mb-3"
-            variant="elevated"
+            variant="glass"
             interactive
             onPress={() => console.log("Person pressed:", person.id)}
           >

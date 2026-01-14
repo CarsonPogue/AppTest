@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { View, Text, Modal, Pressable } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useRouter } from "expo-router";
+import { useRouter, useFocusEffect } from "expo-router";
 import { useTheme } from "../../src/stores/theme";
 import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
@@ -14,6 +14,7 @@ import Animated, {
   withDelay,
 } from "react-native-reanimated";
 import { BlurView } from "expo-blur";
+import { useCallback } from "react";
 
 type QuickAddOption = {
   id: string;
@@ -73,10 +74,21 @@ export default function AddScreen() {
   const router = useRouter();
   const [visible, setVisible] = useState(true);
 
+  // Reset visible state when screen comes into focus
+  useFocusEffect(
+    useCallback(() => {
+      setVisible(true);
+      return () => {
+        // Cleanup when screen loses focus
+        setVisible(false);
+      };
+    }, [])
+  );
+
   const handleClose = () => {
     setVisible(false);
     setTimeout(() => {
-      router.back();
+      router.replace("/(tabs)/dashboard");
     }, 250);
   };
 

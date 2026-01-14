@@ -54,11 +54,38 @@ export default function TabsLayout() {
         }}
       />
       <Tabs.Screen
+        name="add"
+        options={{
+          title: "",
+          tabBarIcon: ({ focused }) => (
+            <View
+              style={{
+                width: 56,
+                height: 56,
+                borderRadius: 28,
+                backgroundColor: colors.primary,
+                justifyContent: "center",
+                alignItems: "center",
+                marginBottom: 20,
+                shadowColor: colors.primary,
+                shadowOffset: { width: 0, height: 4 },
+                shadowOpacity: 0.3,
+                shadowRadius: 8,
+                elevation: 8,
+              }}
+            >
+              <Ionicons name="add" size={28} color="#FFFFFF" />
+            </View>
+          ),
+          tabBarLabel: () => null,
+        }}
+      />
+      <Tabs.Screen
         name="life"
         options={{
           title: "Life",
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="people-outline" size={size} color={color} />
+            <Ionicons name="apps-outline" size={size} color={color} />
           ),
         }}
       />
@@ -81,12 +108,6 @@ export default function TabsLayout() {
         name="habits"
         options={{
           href: null, // Hide from tab bar, accessed from schedule
-        }}
-      />
-      <Tabs.Screen
-        name="add"
-        options={{
-          href: null, // Remove center FAB
         }}
       />
       <Tabs.Screen

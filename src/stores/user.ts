@@ -1,21 +1,111 @@
 import { create } from "zustand";
+import { db } from "../db/client";
+import { eq } from "drizzle-orm";
+import * as schema from "../db/schema";
+import { getSession, saveSession, clearSession, generateToken } from "../utils/auth";
 
-interface User {
+export interface User {
   id: string;
   email: string;
-  name: string;
+  firstName: string;
+  birthday: string;
   avatarUrl?: string;
   timezone: string;
+  createdAt: string;
 }
 
 interface UserStore {
   user: User | null;
-  setUser: (user: User | null) => void;
   isAuthenticated: boolean;
+  isLoading: boolean;
+  setUser: (user: User | null) => void;
+  login: (userId: string) => Promise<void>;
+  logout: () => Promise<void>;
+  checkAuth: () => Promise<boolean>;
 }
 
-export const useUserStore = create<UserStore>((set) => ({
+export const useUserStore = create<UserStore>((set, get) => ({
   user: null,
-  setUser: (user) => set({ user, isAuthenticated: !!user }),
   isAuthenticated: false,
+  isLoading: true,
+
+  setUser: (user) => set({ user, isAuthenticated: !!user }),
+
+  login: async (userId: string) => {
+    try {
+      const userData = await db.query.users.findFirst({
+        where: eq(schema.users.id, userId),
+      });
+
+      if (!userData) {
+        throw new Error("User not found");
+      }
+
+      const token = generateToken();
+      await saveSession(userId, token);
+
+      set({
+        user: {
+          id: userData.id,
+          email: userData.email,
+          firstName: userData.firstName,
+          birthday: userData.birthday,
+          avatarUrl: userData.avatarUrl || undefined,
+          timezone: userData.timezone,
+          createdAt: userData.createdAt,
+        },
+        isAuthenticated: true,
+        isLoading: false,
+      });
+    } catch (error) {
+      console.error("Login error:", error);
+      throw error;
+    }
+  },
+
+  logout: async () => {
+    await clearSession();
+    set({ user: null, isAuthenticated: false });
+  },
+
+  checkAuth: async () => {
+    try {
+      const { userId } = await getSession();
+
+      if (!userId) {
+        set({ isLoading: false, isAuthenticated: false });
+        return false;
+      }
+
+      const userData = await db.query.users.findFirst({
+        where: eq(schema.users.id, userId),
+      });
+
+      if (!userData) {
+        await clearSession();
+        set({ isLoading: false, isAuthenticated: false });
+        return false;
+      }
+
+      set({
+        user: {
+          id: userData.id,
+          email: userData.email,
+          firstName: userData.firstName,
+          birthday: userData.birthday,
+          avatarUrl: userData.avatarUrl || undefined,
+          timezone: userData.timezone,
+          createdAt: userData.createdAt,
+        },
+        isAuthenticated: true,
+        isLoading: false,
+      });
+
+      return true;
+    } catch (error) {
+      console.error("Auth check error:", error);
+      set({ isLoading: false, isAuthenticated: false });
+      return false;
+    }
+  },
 }));

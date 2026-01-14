@@ -11,6 +11,8 @@ export interface User {
   birthday: string;
   avatarUrl?: string;
   timezone: string;
+  greetingStyle?: string;
+  workdays?: string;
   createdAt: string;
 }
 
@@ -22,6 +24,7 @@ interface UserStore {
   login: (userId: string) => Promise<void>;
   logout: () => Promise<void>;
   checkAuth: () => Promise<boolean>;
+  refreshUser: () => Promise<void>;
 }
 
 export const useUserStore = create<UserStore>((set, get) => ({
@@ -52,6 +55,8 @@ export const useUserStore = create<UserStore>((set, get) => ({
           birthday: userData.birthday,
           avatarUrl: userData.avatarUrl || undefined,
           timezone: userData.timezone,
+          greetingStyle: userData.greetingStyle || undefined,
+          workdays: userData.workdays || undefined,
           createdAt: userData.createdAt,
         },
         isAuthenticated: true,
@@ -95,6 +100,8 @@ export const useUserStore = create<UserStore>((set, get) => ({
           birthday: userData.birthday,
           avatarUrl: userData.avatarUrl || undefined,
           timezone: userData.timezone,
+          greetingStyle: userData.greetingStyle || undefined,
+          workdays: userData.workdays || undefined,
           createdAt: userData.createdAt,
         },
         isAuthenticated: true,
@@ -106,6 +113,35 @@ export const useUserStore = create<UserStore>((set, get) => ({
       console.error("Auth check error:", error);
       set({ isLoading: false, isAuthenticated: false });
       return false;
+    }
+  },
+
+  refreshUser: async () => {
+    try {
+      const currentUser = get().user;
+      if (!currentUser) return;
+
+      const userData = await db.query.users.findFirst({
+        where: eq(schema.users.id, currentUser.id),
+      });
+
+      if (!userData) return;
+
+      set({
+        user: {
+          id: userData.id,
+          email: userData.email,
+          firstName: userData.firstName,
+          birthday: userData.birthday,
+          avatarUrl: userData.avatarUrl || undefined,
+          timezone: userData.timezone,
+          greetingStyle: userData.greetingStyle || undefined,
+          workdays: userData.workdays || undefined,
+          createdAt: userData.createdAt,
+        },
+      });
+    } catch (error) {
+      console.error("Error refreshing user:", error);
     }
   },
 }));

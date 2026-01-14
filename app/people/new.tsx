@@ -18,14 +18,20 @@ import { nanoid } from "../../src/utils/nanoid";
 import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 
-const RELATIONSHIP_OPTIONS = [
-  "Friend",
-  "Family",
-  "Colleague",
-  "Partner",
-  "Acquaintance",
-  "Mentor",
-  "Other",
+const TAG_OPTIONS = [
+  "friend",
+  "family",
+  "colleague",
+  "mentor",
+  "partner",
+  "neighbor",
+  "client",
+];
+
+const PRIORITY_OPTIONS: Array<{ value: "low" | "normal" | "high"; label: string }> = [
+  { value: "low", label: "Low" },
+  { value: "normal", label: "Normal" },
+  { value: "high", label: "High" },
 ];
 
 const FREQUENCY_PRESETS = [
@@ -40,9 +46,10 @@ export default function NewPersonScreen() {
   const { user } = useUserStore();
   const router = useRouter();
 
-  const [name, setName] = useState("");
-  const [relationship, setRelationship] = useState("Friend");
-  const [touchpointFrequency, setTouchpointFrequency] = useState("14");
+  const [fullName, setFullName] = useState("");
+  const [tags, setTags] = useState<string[]>([]);
+  const [priority, setPriority] = useState<"low" | "normal" | "high">("normal");
+  const [preferredCadenceDays, setPreferredCadenceDays] = useState("14");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
   const [birthday, setBirthday] = useState("");
@@ -51,14 +58,23 @@ export default function NewPersonScreen() {
 
   const textColor = isDark ? "text-white" : "text-gray-900";
 
+  const toggleTag = (tag: string) => {
+    if (tags.includes(tag)) {
+      setTags(tags.filter((t) => t !== tag));
+    } else {
+      setTags([...tags, tag]);
+    }
+    Haptics.selectionAsync();
+  };
+
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
 
-    if (!name.trim()) {
-      newErrors.name = "Name is required";
+    if (!fullName.trim()) {
+      newErrors.fullName = "Name is required";
     }
 
-    if (!touchpointFrequency || parseInt(touchpointFrequency) < 1) {
+    if (!preferredCadenceDays || parseInt(preferredCadenceDays) < 1) {
       newErrors.frequency = "Enter a valid frequency";
     }
 
@@ -78,14 +94,17 @@ export default function NewPersonScreen() {
       await db.insert(schema.people).values({
         id: nanoid(),
         userId: user.id,
-        name: name.trim(),
-        relationship,
-        touchpointFrequencyDays: parseInt(touchpointFrequency),
+        fullName: fullName.trim(),
+        tags: tags.join(","),
+        priority,
+        preferredCadenceDays: parseInt(preferredCadenceDays),
         phone: phone.trim() || null,
         email: email.trim() || null,
         birthday: birthday.trim() || null,
         notes: notes.trim() || "",
-        lastContactDate: null,
+        lastInteractionAt: null,
+        lastInteractionType: null,
+        createdAt: new Date().toISOString(),
       });
 
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
@@ -111,27 +130,73 @@ export default function NewPersonScreen() {
       </View>
 
       <ScrollView className="flex-1 px-4">
-        {/* Name */}
+        {/* Full Name */}
         <Input
-          label="Name"
+          label="Full Name"
           placeholder="e.g., Sarah Johnson"
-          value={name}
-          onChangeText={setName}
-          error={errors.name}
+          value={fullName}
+          onChangeText={setFullName}
+          error={errors.fullName}
           containerClassName="mb-4"
         />
 
-        {/* Relationship */}
+        {/* Tags */}
         <View className="mb-4">
           <Text className={`text-sm font-medium mb-2 ${textColor}`}>
-            Relationship
+            Tags (Select all that apply)
           </Text>
           <View className="flex-row flex-wrap">
-            {RELATIONSHIP_OPTIONS.map((option) => (
+            {TAG_OPTIONS.map((tag) => (
               <Pressable
-                key={option}
+                key={tag}
+                onPress={() => toggleTag(tag)}
+                className="mr-2 mb-2"
+              >
+                <View
+                  className="px-4 py-2 rounded-xl"
+                  style={{
+                    backgroundColor: tags.includes(tag)
+                      ? "#3B82F6"
+                      : isDark
+                      ? "rgba(30, 41, 59, 0.5)"
+                      : "rgba(255, 255, 255, 0.7)",
+                    borderWidth: 1,
+                    borderColor: tags.includes(tag)
+                      ? "#3B82F6"
+                      : isDark
+                      ? "rgba(255, 255, 255, 0.1)"
+                      : "rgba(0, 0, 0, 0.1)",
+                  }}
+                >
+                  <Text
+                    className="font-medium capitalize"
+                    style={{
+                      color: tags.includes(tag)
+                        ? "#FFFFFF"
+                        : isDark
+                        ? "#F7FAFC"
+                        : "#1A202C",
+                    }}
+                  >
+                    {tag}
+                  </Text>
+                </View>
+              </Pressable>
+            ))}
+          </View>
+        </View>
+
+        {/* Priority */}
+        <View className="mb-4">
+          <Text className={`text-sm font-medium mb-2 ${textColor}`}>
+            Priority
+          </Text>
+          <View className="flex-row flex-wrap">
+            {PRIORITY_OPTIONS.map((option) => (
+              <Pressable
+                key={option.value}
                 onPress={() => {
-                  setRelationship(option);
+                  setPriority(option.value);
                   Haptics.selectionAsync();
                 }}
                 className="mr-2 mb-2"
@@ -140,14 +205,14 @@ export default function NewPersonScreen() {
                   className="px-4 py-2 rounded-xl"
                   style={{
                     backgroundColor:
-                      relationship === option
+                      priority === option.value
                         ? "#3B82F6"
                         : isDark
                         ? "rgba(30, 41, 59, 0.5)"
                         : "rgba(255, 255, 255, 0.7)",
                     borderWidth: 1,
                     borderColor:
-                      relationship === option
+                      priority === option.value
                         ? "#3B82F6"
                         : isDark
                         ? "rgba(255, 255, 255, 0.1)"
@@ -158,14 +223,14 @@ export default function NewPersonScreen() {
                     className="font-medium"
                     style={{
                       color:
-                        relationship === option
+                        priority === option.value
                           ? "#FFFFFF"
                           : isDark
                           ? "#F7FAFC"
                           : "#1A202C",
                     }}
                   >
-                    {option}
+                    {option.label}
                   </Text>
                 </View>
               </Pressable>
@@ -173,7 +238,7 @@ export default function NewPersonScreen() {
           </View>
         </View>
 
-        {/* Touchpoint Frequency */}
+        {/* Check-in Frequency */}
         <View className="mb-4">
           <Text className={`text-sm font-medium mb-2 ${textColor}`}>
             Check-in Frequency
@@ -183,7 +248,7 @@ export default function NewPersonScreen() {
               <Pressable
                 key={preset.days}
                 onPress={() => {
-                  setTouchpointFrequency(preset.days.toString());
+                  setPreferredCadenceDays(preset.days.toString());
                   Haptics.selectionAsync();
                 }}
                 className="mr-2 mb-2"
@@ -192,14 +257,14 @@ export default function NewPersonScreen() {
                   className="px-4 py-2 rounded-xl"
                   style={{
                     backgroundColor:
-                      touchpointFrequency === preset.days.toString()
+                      preferredCadenceDays === preset.days.toString()
                         ? "#3B82F6"
                         : isDark
                         ? "rgba(30, 41, 59, 0.5)"
                         : "rgba(255, 255, 255, 0.7)",
                     borderWidth: 1,
                     borderColor:
-                      touchpointFrequency === preset.days.toString()
+                      preferredCadenceDays === preset.days.toString()
                         ? "#3B82F6"
                         : isDark
                         ? "rgba(255, 255, 255, 0.1)"
@@ -210,7 +275,7 @@ export default function NewPersonScreen() {
                     className="font-medium"
                     style={{
                       color:
-                        touchpointFrequency === preset.days.toString()
+                        preferredCadenceDays === preset.days.toString()
                           ? "#FFFFFF"
                           : isDark
                           ? "#F7FAFC"
@@ -225,8 +290,8 @@ export default function NewPersonScreen() {
           </View>
           <Input
             placeholder="Or enter custom days"
-            value={touchpointFrequency}
-            onChangeText={setTouchpointFrequency}
+            value={preferredCadenceDays}
+            onChangeText={setPreferredCadenceDays}
             keyboardType="number-pad"
             error={errors.frequency}
           />

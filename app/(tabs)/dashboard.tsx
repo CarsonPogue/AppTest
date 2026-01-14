@@ -18,6 +18,7 @@ import { getGreeting, formatTime, formatDate, daysFromNow } from "../../src/util
 import { startOfDay, endOfDay, addDays, addWeeks, addMonths } from "date-fns";
 import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
+import { calculateDrift, type Priority } from "../../src/utils/relationshipIntelligence";
 
 type DashboardSummary = {
   events: {
@@ -31,7 +32,8 @@ type DashboardSummary = {
   };
   people: {
     overdueCount: number;
-    nextPerson: { name: string; daysOverdue: number } | null;
+    importantNeglectedCount: number;
+    nextPerson: { fullName: string; daysOverdue: number; priority: string } | null;
   };
   subscriptions: {
     nextCharge: { name: string; date: Date; amount: number } | null;
@@ -156,34 +158,54 @@ export default function DashboardScreen() {
       where: eq(schema.people.userId, userId),
     });
 
-    const overduePeople = allPeople.filter((p) => {
-      if (!p.lastContactDate) return true;
-      const daysSinceContact = Math.abs(daysFromNow(p.lastContactDate));
-      return daysSinceContact >= p.touchpointFrequencyDays;
+    const peopleWithDrift = allPeople.map((p) => {
+      const { driftStatus, daysSinceLastInteraction } = calculateDrift(
+        p.lastInteractionAt ? new Date(p.lastInteractionAt) : null,
+        p.preferredCadenceDays,
+        new Date(p.createdAt)
+      );
+
+      return {
+        ...p,
+        driftStatus,
+        daysSinceLastInteraction,
+        isImportantAndNeglected:
+          p.priority === "high" && driftStatus === "overdue",
+      };
     });
 
+    const overduePeople = peopleWithDrift.filter(
+      (p) => p.driftStatus === "overdue"
+    );
+    const importantNeglected = peopleWithDrift.filter(
+      (p) => p.isImportantAndNeglected
+    );
+
+    // Sort by days overdue (most overdue first), prioritizing high priority
     const sorted = overduePeople.sort((a, b) => {
-      const aDays = a.lastContactDate
-        ? Math.abs(daysFromNow(a.lastContactDate)) - a.touchpointFrequencyDays
-        : a.touchpointFrequencyDays;
-      const bDays = b.lastContactDate
-        ? Math.abs(daysFromNow(b.lastContactDate)) - b.touchpointFrequencyDays
-        : b.touchpointFrequencyDays;
+      // Prioritize important & neglected
+      if (a.isImportantAndNeglected && !b.isImportantAndNeglected) return -1;
+      if (!a.isImportantAndNeglected && b.isImportantAndNeglected) return 1;
+
+      // Then sort by days overdue
+      const aDays = (a.daysSinceLastInteraction || 0) - a.preferredCadenceDays;
+      const bDays = (b.daysSinceLastInteraction || 0) - b.preferredCadenceDays;
       return bDays - aDays;
     });
 
     const nextPerson = sorted[0]
       ? {
-          name: sorted[0].name,
-          daysOverdue: sorted[0].lastContactDate
-            ? Math.abs(daysFromNow(sorted[0].lastContactDate)) -
-              sorted[0].touchpointFrequencyDays
-            : sorted[0].touchpointFrequencyDays,
+          fullName: sorted[0].fullName,
+          daysOverdue:
+            (sorted[0].daysSinceLastInteraction || 0) -
+            sorted[0].preferredCadenceDays,
+          priority: sorted[0].priority,
         }
       : null;
 
     return {
       overdueCount: overduePeople.length,
+      importantNeglectedCount: importantNeglected.length,
       nextPerson,
     };
   };
@@ -393,9 +415,18 @@ export default function DashboardScreen() {
           <View>
             {summary?.people.nextPerson && (
               <View className="mb-2">
-                <Text className={`text-sm ${secondaryTextColor}`}>Next to Contact</Text>
+                <View className="flex-row items-center mb-1">
+                  <Text className={`text-sm ${secondaryTextColor}`}>Next to Contact</Text>
+                  {summary.people.nextPerson.priority === "high" && (
+                    <View className="ml-2 bg-red-500/20 px-2 py-0.5 rounded">
+                      <Text className="text-xs font-semibold" style={{ color: "#EF4444" }}>
+                        HIGH
+                      </Text>
+                    </View>
+                  )}
+                </View>
                 <Text className={`text-base font-semibold ${textColor}`}>
-                  {summary.people.nextPerson.name}
+                  {summary.people.nextPerson.fullName}
                 </Text>
                 <Text className={`text-sm`} style={{ color: "#EF4444" }}>
                   {summary.people.nextPerson.daysOverdue > 0
@@ -404,11 +435,21 @@ export default function DashboardScreen() {
                 </Text>
               </View>
             )}
-            <View className="flex-row items-center">
-              <Ionicons name="alert-circle" size={16} color="#EF4444" />
-              <Text className={`text-sm ml-2 ${secondaryTextColor}`}>
-                {summary?.people.overdueCount || 0} overdue touchpoints
-              </Text>
+            <View>
+              {summary?.people.importantNeglectedCount > 0 && (
+                <View className="flex-row items-center mb-1">
+                  <Ionicons name="warning" size={16} color="#EF4444" />
+                  <Text className={`text-sm ml-2 ${secondaryTextColor}`}>
+                    {summary.people.importantNeglectedCount} important & neglected
+                  </Text>
+                </View>
+              )}
+              <View className="flex-row items-center">
+                <Ionicons name="alert-circle" size={16} color="#F59E0B" />
+                <Text className={`text-sm ml-2 ${secondaryTextColor}`}>
+                  {summary?.people.overdueCount || 0} overdue contacts
+                </Text>
+              </View>
             </View>
           </View>
         </DashboardCard>

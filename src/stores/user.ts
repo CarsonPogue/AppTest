@@ -9,7 +9,7 @@ export interface User {
   email: string;
   firstName: string;
   birthday: string;
-  avatarUrl?: string;
+  profilePhotoUrl?: string;
   timezone: string;
   greetingStyle?: string;
   workdays?: string;
@@ -53,7 +53,7 @@ export const useUserStore = create<UserStore>((set, get) => ({
           email: userData.email,
           firstName: userData.firstName,
           birthday: userData.birthday,
-          avatarUrl: userData.avatarUrl || undefined,
+          profilePhotoUrl: userData.profilePhotoUrl || undefined,
           timezone: userData.timezone,
           greetingStyle: userData.greetingStyle || undefined,
           workdays: userData.workdays || undefined,
@@ -98,7 +98,7 @@ export const useUserStore = create<UserStore>((set, get) => ({
           email: userData.email,
           firstName: userData.firstName,
           birthday: userData.birthday,
-          avatarUrl: userData.avatarUrl || undefined,
+          profilePhotoUrl: userData.profilePhotoUrl || undefined,
           timezone: userData.timezone,
           greetingStyle: userData.greetingStyle || undefined,
           workdays: userData.workdays || undefined,
@@ -133,7 +133,7 @@ export const useUserStore = create<UserStore>((set, get) => ({
           email: userData.email,
           firstName: userData.firstName,
           birthday: userData.birthday,
-          avatarUrl: userData.avatarUrl || undefined,
+          profilePhotoUrl: userData.profilePhotoUrl || undefined,
           timezone: userData.timezone,
           greetingStyle: userData.greetingStyle || undefined,
           workdays: userData.workdays || undefined,

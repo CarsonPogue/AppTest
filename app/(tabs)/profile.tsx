@@ -1,5 +1,5 @@
-import React from "react";
-import { View, Text, ScrollView, Pressable } from "react-native";
+import React, { useState } from "react";
+import { View, Text, ScrollView, Pressable, Image, Alert, ActivityIndicator } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { useTheme } from "../../src/stores/theme";
@@ -7,6 +7,10 @@ import { useUserStore } from "../../src/stores/user";
 import { Card } from "../../src/components/ui/Card";
 import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
+import * as ImagePicker from "expo-image-picker";
+import { db } from "../../src/db/client";
+import * as schema from "../../src/db/schema";
+import { eq } from "drizzle-orm";
 
 type MenuItem = {
   title: string;
@@ -18,11 +22,59 @@ type MenuItem = {
 
 export default function ProfileScreen() {
   const { isDark } = useTheme();
-  const { user } = useUserStore();
+  const { user, refreshUser } = useUserStore();
   const router = useRouter();
+  const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
 
   const textColor = isDark ? "text-white" : "text-gray-900";
   const secondaryTextColor = isDark ? "text-gray-400" : "text-gray-600";
+
+  const pickImage = async () => {
+    if (!user) return;
+
+    try {
+      // Request permission
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+      if (status !== "granted") {
+        Alert.alert(
+          "Permission Required",
+          "Please allow access to your photo library to upload a profile picture."
+        );
+        return;
+      }
+
+      // Pick image
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.8,
+      });
+
+      if (!result.canceled && result.assets[0]) {
+        setIsUploadingPhoto(true);
+        Haptics.selectionAsync();
+
+        // Save to database
+        const imageUri = result.assets[0].uri;
+        await db
+          .update(schema.users)
+          .set({ profilePhotoUrl: imageUri })
+          .where(eq(schema.users.id, user.id));
+
+        // Refresh user data
+        await refreshUser();
+
+        setIsUploadingPhoto(false);
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      }
+    } catch (error) {
+      console.error("Error uploading photo:", error);
+      setIsUploadingPhoto(false);
+      Alert.alert("Error", "Failed to upload photo. Please try again.");
+    }
+  };
 
   const profileMenuItems: MenuItem[] = [
     {
@@ -81,16 +133,54 @@ export default function ProfileScreen() {
         {/* Profile Header */}
         <View className="px-4 py-6">
           <View className="items-center mb-6">
-            <View
-              className="w-24 h-24 rounded-full items-center justify-center mb-3"
-              style={{
-                backgroundColor: isDark
-                  ? "rgba(59, 130, 246, 0.2)"
-                  : "rgba(59, 130, 246, 0.1)",
-              }}
-            >
-              <Ionicons name="person" size={48} color="#3B82F6" />
-            </View>
+            <Pressable onPress={pickImage} disabled={isUploadingPhoto}>
+              <View className="relative mb-3">
+                {user?.profilePhotoUrl ? (
+                  <Image
+                    source={{ uri: user.profilePhotoUrl }}
+                    style={{
+                      width: 96,
+                      height: 96,
+                      borderRadius: 48,
+                    }}
+                  />
+                ) : (
+                  <View
+                    className="w-24 h-24 rounded-full items-center justify-center"
+                    style={{
+                      backgroundColor: isDark
+                        ? "rgba(59, 130, 246, 0.2)"
+                        : "rgba(59, 130, 246, 0.1)",
+                    }}
+                  >
+                    <Ionicons name="person" size={48} color="#3B82F6" />
+                  </View>
+                )}
+
+                {/* Camera Icon Overlay */}
+                <View
+                  style={{
+                    position: "absolute",
+                    bottom: 0,
+                    right: 0,
+                    width: 32,
+                    height: 32,
+                    borderRadius: 16,
+                    backgroundColor: "#3B82F6",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    borderWidth: 3,
+                    borderColor: isDark ? "#111827" : "#FFFFFF",
+                  }}
+                >
+                  {isUploadingPhoto ? (
+                    <ActivityIndicator size="small" color="#FFFFFF" />
+                  ) : (
+                    <Ionicons name="camera" size={16} color="#FFFFFF" />
+                  )}
+                </View>
+              </View>
+            </Pressable>
             <Text className={`text-2xl font-bold ${textColor}`}>
               {user?.firstName || "User"}
             </Text>

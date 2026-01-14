@@ -14,14 +14,23 @@
     "assetBundlePatterns": ["**/*"],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.praxis.app"
+      "bundleIdentifier": "com.praxis.app",
+      "infoPlist": {
+        "NSPhotoLibraryUsageDescription": "Praxis needs access to your photo library so you can upload a profile picture.",
+        "NSPhotoLibraryAddUsageDescription": "Praxis needs access to save photos to your photo library."
+      }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.praxis.app"
+      "package": "com.praxis.app",
+      "permissions": [
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE",
+        "READ_MEDIA_IMAGES"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"

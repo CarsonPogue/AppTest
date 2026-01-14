@@ -32,7 +32,7 @@ function AnimatedRainbowRing({ isDark }: { isDark: boolean }) {
         height: 64,
         justifyContent: "center",
         alignItems: "center",
-        marginTop: -6,
+        marginTop: -10,
         marginBottom: 0,
       }}
     >

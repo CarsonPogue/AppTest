@@ -89,7 +89,7 @@ export default function AddScreen() {
     setVisible(false);
     setTimeout(() => {
       router.replace("/(tabs)/dashboard");
-    }, 150);
+    }, 100);
   };
 
   const handleOptionPress = (route: string) => {
@@ -97,7 +97,7 @@ export default function AddScreen() {
     setVisible(false);
     setTimeout(() => {
       router.push(route as any);
-    }, 250);
+    }, 150);
   };
 
   return (
@@ -111,8 +111,8 @@ export default function AddScreen() {
       <Pressable onPress={handleClose} style={{ flex: 1 }}>
         {/* Subtle blur and dim background */}
         <Animated.View
-          entering={FadeIn.duration(250)}
-          exiting={FadeOut.duration(200)}
+          entering={FadeIn.duration(150)}
+          exiting={FadeOut.duration(100)}
           style={{
             position: "absolute",
             top: 0,
@@ -148,20 +148,20 @@ export default function AddScreen() {
         <View style={{ flex: 1, justifyContent: "center", paddingHorizontal: 32 }}>
           <Pressable onPress={(e) => e.stopPropagation()}>
             <Animated.View
-              entering={FadeIn.duration(250)
-                .withInitialValues({ opacity: 0, transform: [{ scale: 0.95 }] })
+              entering={FadeIn.duration(150)
+                .withInitialValues({ opacity: 0, transform: [{ scale: 0.96 }] })
                 .withCallback(() => {
                   'worklet';
                   // Smooth scale animation
                 })}
-              exiting={FadeOut.duration(200)}
+              exiting={FadeOut.duration(100)}
               style={{ gap: 12 }}
             >
               {quickAddOptions.map((option, index) => (
                 <Animated.View
                   key={option.id}
-                  entering={FadeIn.delay(index * 30).duration(200)}
-                  exiting={FadeOut.duration(100)}
+                  entering={FadeIn.delay(index * 20).duration(150)}
+                  exiting={FadeOut.duration(80)}
                 >
                   <Pressable
                     onPress={() => handleOptionPress(option.route)}
@@ -218,8 +218,8 @@ export default function AddScreen() {
 
               {/* Cancel Button */}
               <Animated.View
-                entering={FadeIn.delay(quickAddOptions.length * 30 + 50).duration(200)}
-                exiting={FadeOut.duration(100)}
+                entering={FadeIn.delay(quickAddOptions.length * 20 + 30).duration(150)}
+                exiting={FadeOut.duration(80)}
               >
                 <Pressable
                   onPress={handleClose}

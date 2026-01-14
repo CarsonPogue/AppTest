@@ -19,7 +19,6 @@ import { startOfDay, endOfDay, addDays, addWeeks, addMonths } from "date-fns";
 import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import { calculateDrift, type Priority } from "../../src/utils/relationshipIntelligence";
-import { BlurView } from "expo-blur";
 
 type DashboardSummary = {
   events: {
@@ -256,17 +255,15 @@ export default function DashboardScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-background" edges={["top"]}>
-      {/* Sticky Greeting Header with Glass Effect */}
-      <View style={{ overflow: "hidden", borderRadius: 0 }}>
-        <BlurView
-          intensity={80}
-          tint="systemUltraThinMaterial"
-          style={{
-            paddingHorizontal: 16,
-            paddingTop: 16,
-            paddingBottom: 12,
-          }}
-        >
+      <ScrollView
+        className="flex-1"
+        contentContainerStyle={{ padding: 16, paddingBottom: 120 }}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
+        }
+      >
+        {/* Greeting Header */}
+        <View className="mb-6">
           <Text className={`text-3xl font-bold ${textColor}`}>
             {getGreeting()}, {user?.firstName || "there"}
           </Text>
@@ -277,16 +274,7 @@ export default function DashboardScreen() {
               day: "numeric",
             })}
           </Text>
-        </BlurView>
-      </View>
-
-      <ScrollView
-        className="flex-1"
-        contentContainerStyle={{ padding: 16, paddingBottom: 120 }}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
-        }
-      >
+        </View>
 
         {/* Quick Actions */}
         <View className="mb-6">

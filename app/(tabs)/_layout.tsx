@@ -63,18 +63,23 @@ function AnimatedRainbowRing({ isDark }: { isDark: boolean }) {
           }}
         />
       </Animated.View>
-      {/* Transparent inner circle with just the icon */}
+      {/* White inner circle with black plus icon */}
       <View
         style={{
           width: 56,
           height: 56,
           borderRadius: 28,
-          backgroundColor: "transparent",
+          backgroundColor: "#FFFFFF",
           justifyContent: "center",
           alignItems: "center",
+          shadowColor: "#000000",
+          shadowOffset: { width: 0, height: 2 },
+          shadowOpacity: 0.15,
+          shadowRadius: 8,
+          elevation: 5,
         }}
       >
-        <Ionicons name="add" size={32} color="#FFFFFF" />
+        <Ionicons name="add" size={32} color="#000000" />
       </View>
     </View>
   );

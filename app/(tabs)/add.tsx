@@ -133,7 +133,7 @@ export default function AddScreen() {
         </Animated.View>
 
         {/* Popup centered with smooth fade and scale animation */}
-        <View style={{ flex: 1, justifyContent: "center", paddingHorizontal: 32, paddingBottom: 100 }}>
+        <View style={{ flex: 1, justifyContent: "center", paddingHorizontal: 32 }}>
           <Pressable onPress={(e) => e.stopPropagation()}>
             <Animated.View
               entering={FadeIn.duration(250)
@@ -218,7 +218,7 @@ export default function AddScreen() {
                   }}
                 >
                   <BlurView
-                    intensity={50}
+                    intensity={30}
                     tint={isDark ? "dark" : "light"}
                     style={{
                       paddingVertical: 16,
@@ -233,15 +233,15 @@ export default function AddScreen() {
                         right: 0,
                         bottom: 0,
                         backgroundColor: isDark
-                          ? "rgba(255, 255, 255, 0.1)"
-                          : "rgba(0, 0, 0, 0.05)",
+                          ? "rgba(60, 60, 60, 0.9)"
+                          : "rgba(80, 80, 80, 0.85)",
                       }}
                     />
                     <Text
                       style={{
                         fontSize: 16,
                         fontWeight: "600",
-                        color: isDark ? "#E5E7EB" : "#374151",
+                        color: "#FFFFFF",
                       }}
                     >
                       Cancel

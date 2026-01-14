@@ -255,6 +255,20 @@ export default function DashboardScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-background" edges={["top"]}>
+      {/* Sticky Greeting Header */}
+      <View className="px-4 pt-4 pb-3 bg-background">
+        <Text className={`text-3xl font-bold ${textColor}`}>
+          {getGreeting()}, {user?.firstName || "there"}
+        </Text>
+        <Text className={`text-base mt-1 ${secondaryTextColor}`}>
+          {new Date().toLocaleDateString("en-US", {
+            weekday: "long",
+            month: "long",
+            day: "numeric",
+          })}
+        </Text>
+      </View>
+
       <ScrollView
         className="flex-1"
         contentContainerStyle={{ padding: 16, paddingBottom: 120 }}
@@ -262,19 +276,6 @@ export default function DashboardScreen() {
           <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
         }
       >
-        {/* Greeting */}
-        <View className="mb-6">
-          <Text className={`text-3xl font-bold ${textColor}`}>
-            {getGreeting()}, {user?.firstName || "there"}
-          </Text>
-          <Text className={`text-base mt-1 ${secondaryTextColor}`}>
-            {new Date().toLocaleDateString("en-US", {
-              weekday: "long",
-              month: "long",
-              day: "numeric",
-            })}
-          </Text>
-        </View>
 
         {/* Quick Actions */}
         <View className="mb-6">

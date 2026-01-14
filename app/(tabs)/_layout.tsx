@@ -32,7 +32,7 @@ function AnimatedRainbowRing({ isDark }: { isDark: boolean }) {
         height: 64,
         justifyContent: "center",
         alignItems: "center",
-        marginBottom: 20,
+        marginBottom: 0,
       }}
     >
       {/* Animated Rainbow gradient ring */}
@@ -103,8 +103,8 @@ export default function TabsLayout() {
         tabBarStyle: {
           backgroundColor: "transparent",
           borderTopWidth: 0,
-          height: 75,
-          paddingBottom: 12,
+          height: 70,
+          paddingBottom: 8,
           paddingTop: 8,
           paddingHorizontal: 4,
           position: "absolute",

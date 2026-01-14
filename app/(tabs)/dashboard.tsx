@@ -257,7 +257,7 @@ export default function DashboardScreen() {
     <SafeAreaView className="flex-1 bg-background" edges={["top"]}>
       <ScrollView
         className="flex-1"
-        contentContainerStyle={{ padding: 16 }}
+        contentContainerStyle={{ padding: 16, paddingBottom: 120 }}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
         }
@@ -441,36 +441,132 @@ export default function DashboardScreen() {
           </View>
         </DashboardCard>
 
-        {/* Subscriptions Card */}
+        {/* Home Automation Card */}
         <DashboardCard
-          title="Subscriptions"
-          icon="card-outline"
-          iconColor="#EC4899"
+          title="Home Automation"
+          icon="home-outline"
+          iconColor="#F59E0B"
           route="/(tabs)/home"
-          isEmpty={!summary?.subscriptions.nextCharge}
-          emptyMessage="No subscriptions tracked"
-          emptyAction="Add Subscription"
-          onEmptyActionPress={() => router.push("/home/subscriptions/new" as any)}
           delay={3}
         >
-          <View>
-            {summary?.subscriptions.nextCharge && (
-              <View className="mb-2">
-                <Text className={`text-sm ${secondaryTextColor}`}>Next Renewal</Text>
-                <Text className={`text-base font-semibold ${textColor}`}>
-                  {summary.subscriptions.nextCharge.name}
-                </Text>
-                <Text className={`text-sm ${secondaryTextColor}`}>
-                  ${summary.subscriptions.nextCharge.amount.toFixed(2)} on{" "}
-                  {formatDate(summary.subscriptions.nextCharge.date, "MMM d")}
-                </Text>
+          <View
+            style={{
+              backgroundColor: isDark ? "rgba(55, 65, 81, 0.5)" : "rgba(243, 244, 246, 0.8)",
+              borderRadius: 16,
+              padding: 12,
+            }}
+          >
+            {/* 2x2 Grid */}
+            <View className="flex-row mb-3">
+              {/* Living Room Light */}
+              <View style={{ flex: 1, marginRight: 6 }}>
+                <Pressable
+                  onPress={() => {
+                    Haptics.selectionAsync();
+                    // Toggle logic will be added
+                  }}
+                  style={{
+                    backgroundColor: isDark ? "rgba(31, 41, 55, 0.8)" : "rgba(255, 255, 255, 0.9)",
+                    borderRadius: 12,
+                    padding: 10,
+                    alignItems: "center",
+                  }}
+                >
+                  <Ionicons name="bulb" size={28} color="#F59E0B" />
+                  <Text className={`text-xs font-medium mt-2 ${textColor}`}>
+                    Living Room
+                  </Text>
+                  <Text
+                    className="text-xs font-semibold mt-1"
+                    style={{ color: "#10B981" }}
+                  >
+                    On
+                  </Text>
+                </Pressable>
               </View>
-            )}
-            <View className="flex-row items-center">
-              <Ionicons name="calendar" size={16} color="#EC4899" />
-              <Text className={`text-sm ml-2 ${secondaryTextColor}`}>
-                {summary?.subscriptions.countNext30Days || 0} renewals in next 30 days
-              </Text>
+
+              {/* Bedroom Light */}
+              <View style={{ flex: 1, marginLeft: 6 }}>
+                <Pressable
+                  onPress={() => {
+                    Haptics.selectionAsync();
+                    // Toggle logic will be added
+                  }}
+                  style={{
+                    backgroundColor: isDark ? "rgba(31, 41, 55, 0.8)" : "rgba(255, 255, 255, 0.9)",
+                    borderRadius: 12,
+                    padding: 10,
+                    alignItems: "center",
+                  }}
+                >
+                  <Ionicons name="bulb-outline" size={28} color="#9CA3AF" />
+                  <Text className={`text-xs font-medium mt-2 ${textColor}`}>
+                    Bedroom
+                  </Text>
+                  <Text
+                    className="text-xs font-semibold mt-1"
+                    style={{ color: "#EF4444" }}
+                  >
+                    Off
+                  </Text>
+                </Pressable>
+              </View>
+            </View>
+
+            <View className="flex-row">
+              {/* Garage Door */}
+              <View style={{ flex: 1, marginRight: 6 }}>
+                <Pressable
+                  onPress={() => {
+                    Haptics.selectionAsync();
+                    // Toggle logic will be added
+                  }}
+                  style={{
+                    backgroundColor: isDark ? "rgba(31, 41, 55, 0.8)" : "rgba(255, 255, 255, 0.9)",
+                    borderRadius: 12,
+                    padding: 10,
+                    alignItems: "center",
+                  }}
+                >
+                  <Ionicons name="car" size={28} color="#6B7280" />
+                  <Text className={`text-xs font-medium mt-2 ${textColor}`}>
+                    Garage
+                  </Text>
+                  <Text
+                    className="text-xs font-semibold mt-1"
+                    style={{ color: "#EF4444" }}
+                  >
+                    Closed
+                  </Text>
+                </Pressable>
+              </View>
+
+              {/* Front Door Lock */}
+              <View style={{ flex: 1, marginLeft: 6 }}>
+                <Pressable
+                  onPress={() => {
+                    Haptics.selectionAsync();
+                    // Toggle logic will be added
+                  }}
+                  style={{
+                    backgroundColor: isDark ? "rgba(31, 41, 55, 0.8)" : "rgba(255, 255, 255, 0.9)",
+                    borderRadius: 12,
+                    padding: 10,
+                    alignItems: "center",
+                  }}
+                >
+                  <Ionicons name="lock-closed" size={28} color="#10B981" />
+                  <Text className={`text-xs font-medium mt-2 ${textColor}`}>
+                    Front Door
+                  </Text>
+                  <Text
+                    className="text-xs font-semibold mt-1"
+                    style={{ color: "#10B981" }}
+                  >
+                    Locked
+                  </Text>
+                </Pressable>
+              </View>
             </View>
           </View>
         </DashboardCard>
